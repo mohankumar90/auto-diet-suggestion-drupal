@@ -1,0 +1,4 @@
+name = Anonymous
+description = Anonymous users can search the Patients
+core = 7.x
+package = Z_Custom

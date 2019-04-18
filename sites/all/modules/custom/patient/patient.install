@@ -1,0 +1,278 @@
+<?php
+
+function patient_schema()	{
+	$schema = array();
+	
+	$schema['patient_details'] = array(
+		'fields' => array(
+			'p_id' => array(
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'p_name' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+			),
+			
+			'created' => array(
+				'type' => 'int',
+				'length' => 11,
+				//'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+
+			'mrd_no' => array(
+				'type' => 'varchar',
+				'length' => 10,
+				'not null' => TRUE,
+			),
+			
+			'age' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'gender' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'place' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+			),
+			
+			'height' => array(
+				'type' => 'float',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'weight' => array(
+				'type' => 'float',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'bp' => array(
+				'type' => 'varchar',
+				'length' => 10,
+			),
+			
+			'blood_group' => array(
+				'type' => 'varchar',
+				'length' => 10,
+				//'not null' => TRUE,
+			),
+			
+			'activity_factor' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'exercise_factor' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+			),
+			
+			'injury_factor' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+			),
+
+			'injury_value' => array(
+				'type' => 'float',
+				'unsigned' => TRUE,
+				//'not null' => TRUE,
+			),
+			
+			'allergens' => array(
+				'type' => 'varchar',
+				'length' => 255,
+			),
+			
+			'disease_ids' => array(
+				'type' => 'varchar',
+				'length' => 255,
+			),
+			
+			'uid' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+		
+		),
+		
+		'primary key' => array('p_id'),
+		
+		'foreign keys' => array(
+			'patient_author' => array(
+				'table' => 'users',
+				'columns' => array('uid' => 'uid',),
+			),
+		),
+	);
+
+	$schema['diet_details'] = array(
+		'fields' => array(
+			'diet_id' => array(
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+
+			'p_id' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'bmr' => array(
+				'type' => 'float',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'energy' => array(
+				'type' => 'float',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'cho' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'pro' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'fat' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+
+			'feed_type' => array(
+				'type' => 'varchar',
+				'length' => 50,
+				'not null' => TRUE,
+			),
+
+			'food_type' => array(
+				'type' => 'varchar',
+				'length' => 50,
+			),
+
+			'food_pref' => array(
+				'type' => 'varchar',
+				'length' => 50,
+			),
+			
+			'foods_avoided' => array(
+				'type' => 'varchar',
+				'length' => 255,
+			),
+			
+			'diet_suggested' => array(
+				'type' => 'varchar',
+				'length' => 255,
+			),
+			
+			'diet_comments' => array(
+				'type' => 'varchar',
+				'length' => 255,
+			),
+		),
+		
+		'primary key' => array('diet_id'),
+		
+		'foreign keys' => array(
+			'patient_author' => array(
+				'table' => 'patient_details',
+				'columns' => array('p_id' => 'p_id',),
+			),
+		),
+	);
+	
+	$schema['visit_details'] = array(
+		'fields' => array(
+			'visit_id' => array(
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'p_id' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'visited' => array(
+				'type' => 'int',
+				'length' => 11,
+				'not null' => TRUE,
+			),
+			
+			'weight' => array(
+				'type' => 'int',
+				'not null' => TRUE,
+			),
+		),
+		
+		'primary key' => array('visit_id'),
+		
+		'foreign keys' => array(
+			'patient_ref' => array(
+				'table' => 'patient_details',
+				'columns' => array('p_id' => 'p_id',),
+			),
+			
+		),
+	);
+	
+	$schema['combination_of_foods'] = array(
+		'fields' => array(
+			'combination_id' => array(
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'visit_id' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'rows' => array(
+				'type' => 'blob',
+				'size' => 'big',
+			),
+		),
+		
+		'primary key' => array('combination_id'),
+		
+		'foreign keys' => array(
+			'visit_ref' => array(
+				'table' => 'visit_details',
+				'columns' => array('visit_id' => 'visit_id',),
+			),
+		),
+	);
+	
+	return $schema;
+}

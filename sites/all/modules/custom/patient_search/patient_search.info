@@ -1,0 +1,4 @@
+name = "Patient search"
+description = "Search diet details and patient details and to edit patient details"
+core = 7.x
+package = "Z_Custom"

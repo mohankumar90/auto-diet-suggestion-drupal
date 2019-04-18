@@ -1,0 +1,3182 @@
+<?php
+
+function patient_menu() {
+	
+	$items = array();
+	  
+	$items['patient_add'] = array(
+		'title' => 'New Patient',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('patient_form'),
+		'access callback' => 'user_is_logged_in',
+		'type' => MENU_NORMAL_ITEM,
+	);
+
+	$items['diet_pref'] = array(
+		'title' => 'Diet Planning',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('diet_pref_form'),
+		'access callback' => 'user_is_logged_in',
+		'type' => MENU_NORMAL_ITEM,
+	);
+
+	$items['food_selection'] = array(
+		'title' => 'Food Selection',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('food_selection_form'),
+		'access callback' => 'user_is_logged_in',
+		'type' => MENU_NORMAL_ITEM,
+	);
+
+	$items['diet_suggest'] = array(
+		'title' => 'Diet Suggestion',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('diet_suggest_form'),
+		'access callback' => 'user_is_logged_in',
+		'type' => MENU_NORMAL_ITEM,
+	);
+
+	return $items;
+}
+
+function patient_form($form, &$form_state)	{
+	
+	$group_chang = trim(variable_get('variable_in_group'),',');		//for each session id here i am storing this can be used wherever we are storing the value in database
+
+	$variable_in_group = explode(',',$group_chang);
+
+	foreach($variable_in_group as $g){
+		variable_del("rem_food$g");
+	}
+
+	variable_del('variable_in_group'); 
+	
+
+	$form['p_name'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Name'), 
+		'#size' => 30, 
+		'#maxlength' => 128, 
+		'#required' => TRUE,
+		'#prefix' => '<div class="col-md-6 col-lg-6">',
+	);
+	
+	$form['age'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Age'), 
+		'#size' => 30, 
+		'#maxlength' => 30, 
+		'#required' => TRUE,
+		'#attributes' => array('placeholder' => t( 'in Years' )),
+	);
+
+	$form['mrd_no'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Hospital ID/MRD No'),
+		'#size' => 30,
+		'#required' => TRUE,
+		'#attributes' => array('placeholder' => t( 'MRD No' )),
+	);
+ 	
+	$form['gender'] = array(
+		'#type' => 'radios',
+		'#title' => t('Gender'),
+		'#options' => array(
+			0 => 'Male',
+			1 => 'Female',
+		),
+		'#required' => TRUE,
+	);
+	
+	$form['place'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Place'), 
+		'#size' => 30, 
+		'#maxlength' => 128, 
+		'#required' => TRUE,
+	);
+	
+	$form['height'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Height (cm)'), 
+		'#size' => 30, 
+		'#maxlength' => 30, 
+		'#required' => TRUE,
+		'#attributes' => array('placeholder' => t( 'in Centimeters' )),
+		//'#default_value' => variable_get('height_units_default','cmts'),
+		
+	); 
+
+	$form['weight'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Weight (kg)'),
+		'#size' => 30, 
+		'#maxlength' => 20, 
+		'#required' => TRUE,
+		//'#default_value' => variable_get('weight_units_default','kgs'),
+		'#attributes' => array('placeholder' => t( 'in Kilograms' )),
+	    '#suffix' => '  </div>',
+		
+	);
+	
+	$form['bp'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Blood Pressure (mmHg)'), 
+		'#size' => 30, 
+		'#maxlength' => 30,
+		'#attributes' => array('placeholder' => t( 'sys/dia' )),
+		//'#default_value' => variable_get('bp_units_default','sys/dia'),
+		'#prefix' => '<div class="col-md-6 col-lg-6">',
+	);
+	
+	$form['blood_group'] = array(
+		'#type' => 'select',
+		'#title' => t('Blood Group'), 
+		'#options' => array(
+			'A+' => 'A +ve',
+			'B+' => 'B +ve',
+			'AB+' => 'AB +ve',
+			'O+' => 'O +ve',
+			'A-' => 'A -ve',
+			'B-' => 'B -ve',
+			'AB-' => 'AB -ve',
+			'O-' => 'O -ve',
+		)
+	);
+	
+	// ********* Activity Factor (using DataBase) ***********
+	
+	/*$query = db_select('node', 'n');
+	
+	$query->join('field_data_field_activity_value','v', 'n.nid = v.entity_id');
+	
+	$query
+		->fields('v',array('field_activity_value_value'))
+		->fields('n',array('title'));
+		//->condition('n.type', 'activity_factor');
+		
+		$res = $query->execute();*/
+		
+	$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = :type', array(':type' => 'activity_factor'));
+	
+	$opts = $query->fetchAllKeyed();				
+	
+	$form['activity_factor'] = array(
+		'#type' => 'select',
+		'#title' => t('Activity Factor'), 
+		'#options' => $opts,
+		'#required' => TRUE,
+	);
+	
+	$form['check'] = array(
+		'#type' => 'checkbox',
+		'#title' => t('Add Exercise'),
+		'#default_value' => variable_get('checkbox', FALSE),
+	);
+
+	
+	
+	// ********* Activity Factor based on Exercise (using DataBase) ***********
+	
+	$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = :type', array(':type' => 'activity_factor_for_exercise'));
+	
+	$opts = $query->fetchAllKeyed();
+	
+	$form['exercise'] = array(
+		'#type' => 'select',
+		'#title' => t('Exercises'), 
+		'#options' => $opts,
+		'#states' => array(
+		  'invisible' => array(
+			':input[name="check"]' => array('checked' => FALSE),
+		  ),
+		),
+	);
+	
+		/*
+	);*/
+	
+	
+	
+	// ********* Injury Factor (using DataBase) ***********
+	
+	$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = :type', array(':type' => 'injury_factor'));
+	
+	$opts = $query->fetchAllKeyed();
+	
+	
+	
+	$form['injury_factor'] = array(
+		'#type' => 'select',
+		'#title' => t('Injury Factor'), 
+		'#options' => $opts,
+		'#required' => TRUE,
+		/*'#ajax' => array(
+			'callback' => 'injury_slider',
+			'wrapper' => 'injury_slider_div',
+		),*/
+	);
+
+	$m = !empty($form_state['values']['injury_factor']) ? $form_state['values']['injury_factor'] : 0;
+	$min = 1;
+	$max = 1.75;
+	variable_set('def', 1); 
+
+	switch ($m)
+	{
+		case 0:
+			$min = 1;
+			$max = 1.75;
+			//$def = 1;
+			break;
+			
+		default:
+			
+			$loc_query = db_query('SELECT n.field_injury_value_value AS val FROM {field_data_field_injury_value} n WHERE n.entity_id = :type', array(':type' => $m));
+			$min = $loc_query->fetchField(0);
+			$loc_query = db_query('SELECT n.field_injury_value2_value AS val FROM {field_data_field_injury_value2} n WHERE n.entity_id = :type', array(':type' => $m));
+			$max = $loc_query->fetchField(0);
+
+			variable_set('def', ($min + $max) / 2);
+
+			break;
+	}
+	
+	
+	$form['food_preference'] = array(
+		'#type' => 'select',
+		'#title' => t('Food Preference'),
+		'#options' => array(
+			0 => 'Vegeterian',
+			1 => 'Non-Vegeterian',
+		),
+		'#required' => TRUE,
+	);
+	
+	/*$form['injury_value'] = array(
+		'#title' => t('Injury Factor Range'),
+		'#type' => 'slider',
+		//'#default_value' => 1,
+		//'#orientation' => 'vertical',
+		'#slider_style' => 'green',
+		'#range' => 'min',
+		'#min' => $min,
+		'#max' => $max,
+		'#step' => 0.01,
+		//'#required' => 1,
+		//'#disabled' => TRUE,
+		'#validate_range' => FALSE,
+		'#display_inputs' => FALSE,
+		'#display_values' => TRUE,
+		'#slider_length' => '200px',
+		'#prefix' => '<div id="injury_slider_div">',
+		'#suffix' => '</div>',
+	);*/
+
+	/*foreach ($form_state['values']['injury_value'] as $key => $value) {
+		drupal_set_message($key.' : '.$value);	
+	}*/
+
+	
+	// ********* Allergens list (using DataBase) ***********
+	
+	$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = :type', array(':type' => 'allergen'));
+	
+	$opts = $query->fetchAllKeyed();
+	
+	$form['allergens'] = array(
+		'#type' => 'select',
+		'#title' => t('Allergens'),
+		'#options' => $opts,
+		'#multiple' => TRUE,
+		'#chosen' => TRUE,
+	);
+	
+	
+	
+	
+	// ********* Disease list from the DataBase ***********
+	
+	$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = :type', array(':type' => 'disease'));
+	
+	$opts = $query->fetchAllKeyed();
+	
+	$form['disease_ids'] = array(
+		'#type' => 'select',
+		'#title' => t('Diseases'),
+		'#multiple' => TRUE,
+		'#options' => $opts,
+		'#chosen' => TRUE,
+	);
+	
+	$form['buttons']['submit'] = array(
+		'#value' => t('Add Patient'),
+		'#type' => 'submit',
+	);
+	
+	$form['actions']['reset'] = array(
+		'#markup' => '<input id="resetb" type="reset" value="Reset" style="margin-left: 2%;" />', 
+		'#weight' => 1000,
+		'#suffix' => '</div>'
+	);
+	
+	drupal_add_js(drupal_get_path('module', 'patient') . '/patient_js.js');
+	
+	return $form;
+	
+}
+
+/*function injury_slider($form, $form_state) {
+	//drupal_set_message('final '.$form['injury_value']['#min'].' '.$form['injury_value']['#max']);
+	return $form['injury_value'];
+}*/
+
+
+function patient_form_validate($form, &$form_state) {
+	
+ if(!(empty($form_state['values']['p_name']) && empty($form_state['values']['age']) && empty($form_state['values']['height']) && empty($form_state['values']['weight']) && empty($form_state['values']['bp']) && empty($form_state['values']['mrd_no'])))
+  {
+	if (!preg_match("/^[a-zA-Z ]*$/", $form_state['values']['p_name'])) {
+		form_set_error('p_name', t('Alphabets & Whitespaces only allowed for Patient Name'));  
+	}
+	
+	if (!preg_match("/^[0-9]+$/", $form_state['values']['age'])) {
+		form_set_error('age', t('Not a valid Age'));
+	}
+	
+	if (!preg_match("/^[0-9]+(\.[0-9]{1,2})?$/", $form_state['values']['height'])) {
+		form_set_error('height', t('Not a valid Height'));
+	}
+	
+	if (!preg_match("/^[0-9]+(\.[0-9]{1,2})?$/", $form_state['values']['weight'])) {
+		form_set_error('weight', t('Not a valid Weight'));
+	}
+	
+	/* if (!preg_match("/^[0-9]+\/+[0-9]+$/", $form_state['values']['bp'])) {
+		form_set_error('bp', t('Not a valid Blood Pressure'));
+	} */
+  }
+	
+}
+
+function patient_form_submit($form, &$form_state) {
+	
+	global $user;
+	
+	$p_name = $form_state['values']['p_name'];
+	$age = $form_state['values']['age'];
+	$mrd_no = $form_state['values']['mrd_no'];
+	$gender = $form_state['values']['gender'];
+	$place = $form_state['values']['place'];
+	$height = $form_state['values']['height'];
+	$weight = $form_state['values']['weight'];
+	$bp = $form_state['values']['bp'];
+	$blood_group =  $form_state['values']['blood_group'];
+	$activity_factor = $form_state['values']['activity_factor'];
+	
+	$exercise_factor = ($form_state['values']['check'] == TRUE) ? $form_state['values']['exercise'] : NULL;
+	
+	$injury_factor = $form_state['values']['injury_factor'];
+	
+	$food_preference = $form_state['values']['food_preference'];
+	variable_set('food_preference', $food_preference);
+
+	//$injury_value = $form_state['values']['injury_value']['value'];
+
+	/*if(empty($injury_value)) {
+		$injury_value = variable_get('def');
+		variable_del('def');
+	}*/
+
+	$injury_value = variable_get('def');
+	variable_del('def');
+	
+	$allergens = $form_state['values']['allergens'];
+	$disease_ids = $form_state['values']['disease_ids'];	
+	$allergens_str = '';
+	$diseases_str = '';
+
+	foreach($allergens as $i)
+		$allergens_str = $allergens_str . $i .',';
+		
+	foreach($disease_ids as $i) 
+		$diseases_str = $diseases_str . $i. ',';
+		/* variable_set('patient_name', $p_name);
+		variable_set('patient_place', $place);
+		variable_set('patient_age', $age);
+		variable_set('patient_height', $height);
+		variable_set('patient_weight', $weight);
+		variable_set('patient_blood_group', $blood_group);
+		variable_set('patient_bp', $bp);
+		variable_set('patient_gender',$gender); */
+		
+		
+	$p_id = db_insert('patient_details')
+				->fields(array(
+					'p_name' => $p_name,
+					'created' => REQUEST_TIME,
+					'mrd_no' => $mrd_no,
+					'age' => $age,
+					'gender' => $gender,
+					'place' => $place,
+					'height' => $height,
+					'weight' => $weight,
+					'bp' => $bp,
+					'blood_group' => $blood_group,
+					'activity_factor' => $activity_factor,
+					'exercise_factor' => $exercise_factor,
+					'injury_factor' => $injury_factor,
+					'injury_value' => $injury_value,
+					//'food_preference' => $food_preference,
+					'allergens' => $allergens_str,
+					'disease_ids' => $diseases_str,
+					'uid' => $user->uid,
+				))->execute();
+
+	$_SESSION['pid'] = ($p_id != null) ? $p_id : null;
+	
+	drupal_goto('diet_pref', array('query' => array()));
+	//drupal_set_message("Saved Patient ID: ".$p_id, 'status');
+}
+
+function patient_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'patient'),
+  );
+}
+
+function patient_js_alter(&$javascript) {
+
+	if(current_path() == "diet_pref" || current_path() == "food_selection")	{		 			// slider_js should work only for diet_pref page
+	if (isset($javascript[drupal_get_path('module', 'sliderfield') .'/sliderfield_element_sliderfield.js'])) {
+	   $javascript[drupal_get_path('module', 'sliderfield') .'/sliderfield_element_sliderfield.js']['data'] = drupal_get_path('module', 'patient') . '/sliderfield_patient.js';
+	}
+	}
+
+}
+
+
+function diet_pref_form($form, &$form_state) {
+
+	//$_SESSION['pid'] = 1;
+	
+	$group_chang=trim(variable_get('variable_in_group'),',');//for each session id here i am storing this can be used wherever we are storing the value in database
+		$variable_in_group = explode(',',$group_chang);
+	foreach($variable_in_group as $g){
+		variable_del("rem_food$g");
+	}
+	variable_del('variable_in_group');
+	
+	if(isset($_SESSION['pid'])) {
+
+		$pid = $_SESSION['pid'];
+
+		//unset($_SESSION['pid']);
+
+		$query_all = db_query('SELECT p.age, p.mrd_no, p.gender, p.height, p.weight, p.activity_factor, p.exercise_factor, p.injury_value, p.allergens, p.disease_ids FROM {patient_details} p WHERE p.p_id = :pid', array(':pid' => $pid));
+
+		$def_allergens = [];
+
+		$def_diseases = [];
+
+		$bmr = null;
+
+		$bmi = null;
+
+		$energy = null;
+
+		foreach($query_all as $i) {
+
+			if($i->gender == 0) {
+				//$bmr = 66.5 + (13.75 * $i->weight) + (5.003 * $i->height) - (6.755 * $i->age);		//1918
+				$bmr = (10 * $i->weight) + (6.25 * $i->height) - (5 * $i->age) + 5;						//1990	
+			} else {
+				//$bmr = 655.1 + (9.56 * $i->weight) + (1.85 * $i->height) - (4.676 * $i->age);			//1918
+				$bmr = (10 * $i->weight) + (6.25 * $i->height) - (5 * $i->age) - 161;					//1990
+			}
+
+			$bmi = round($i->weight/ pow(($i->height/100), 2),2);
+
+			//variable_set('patient_mrd', $i->mrd_no);
+
+			$exercise_factor = db_query('SELECT n.field_activity_exercise_value_value FROM {field_data_field_activity_exercise_value} n WHERE n.entity_id =:nid', array(':nid' => $i->exercise_factor))->fetchField();
+
+			$activity_factor = db_query('SELECT n.field_activity_value_value FROM {field_data_field_activity_value} n WHERE n.entity_id =:nid', array(':nid' => $i->activity_factor))->fetchField();
+
+			//drupal_set_message($exercise_factor. " ". $activity_factor);
+
+			$activity_factor = ($exercise_factor != null) ? (($activity_factor + $exercise_factor) / 2) : $activity_factor;
+
+
+			$energy = $bmr * $activity_factor * $i->injury_value;
+
+			//drupal_set_message('BMR : ' . $bmr . ' Energy Req : ' . $energy);
+
+			$tmp = explode(',', $i->allergens);
+			$def_allergens = $tmp;
+
+			$tmp = explode(',', $i->disease_ids);
+			$def_diseases = $tmp;			
+		}
+
+		$form['bmr'] = array(
+			'#type' => 'hidden',
+			'#default_value' => $bmr,
+		);
+
+		$form['energy'] = array(
+			'#type' => 'hidden',
+			'#default_value' => $energy,
+		);
+
+		$form['bmr_energy'] = array(
+			'#markup' => variable_get('bmr_energy', t('<h2>Patient ID: ' . $pid . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; BMI: ' . $bmi . '<br/>BMR: ' . round($bmr, 2) . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Energy Requirement: <span id="energy">' . round($energy, 2) . '</span><sub> kcal/day</sub></h2><h4><table><tr><td>CHO req</td><td>: '. round(($energy * 0.6)/4, 2) .'<sub> grams/day</sub></td></tr> <tr><td>Protein req</td><td>: '. round(($energy * 0.15)/4, 2) .'<sub> grams/day</sub></td></tr><tr><td>Fat req</td><td>: '. round(($energy * 0.25)/9, 2) .'<sub> grams/day</sub></td></tr></table></h4>')),
+		);
+
+		$form['sliders'] = array(
+			'#type' => 'fieldset',
+			'#title' => t('Requirements'),
+			'#collapsible' => TRUE,
+		);
+
+		$form['sliders']['cho_slider'] = array(
+			'#title' => t('CHO'),
+			'#type' => 'slider',
+			'#value' => 60,
+			'#slider_style' => 'green',
+			'#range' => 'min',
+			'#min' => 55,
+			'#max' => 65,
+			'#step' => 1,
+			//'#required' => 1,
+			//'#disabled' => TRUE,
+			'#display_inputs' => FALSE,
+			'#display_values' => TRUE,
+			'#slider_length' => '200px',
+			'#display_bubble' => TRUE,
+			'#display_bubble_format' => '%{value}%%',
+			'#ajax' => array(
+		    	'callback' => 'valid_check_callback',
+		    	'wrapper' => 'valid_check_div',
+    		),
+		);
+
+		$form['sliders']['pro_slider'] = array(
+			'#title' => t('Protein'),
+			'#type' => 'slider',
+			'#value' => 15,
+			//'#orientation' => 'vertical',
+			'#slider_style' => 'red',
+			'#range' => 'min',
+			'#min' => 10,
+			'#max' => 20,
+			'#step' => 1,
+			//'#required' => 1,
+			//'#disabled' => TRUE,
+			'#display_inputs' => FALSE,
+			'#display_values' => TRUE,
+			'#slider_length' => '200px',
+			'#display_bubble' => TRUE,
+			'#display_bubble_format' => '%{value}%%',
+			'#ajax' => array(
+		    	'callback' => 'valid_check_callback',
+		    	'wrapper' => 'valid_check_div',
+    		),
+		);
+
+		$form['sliders']['fat_slider'] = array(
+			'#title' => t('Fat'),
+			'#type' => 'slider',
+			'#value' => 25,
+			//'#orientation' => 'vertical',
+			'#slider_style' => 'blue',
+			'#range' => 'min',
+			'#min' => 10,
+			'#max' => 30,
+			'#step' => 1,
+			//'#required' => 1,
+			//'#disabled' => TRUE,
+			'#display_inputs' => FALSE,
+			'#display_values' => TRUE,
+			'#slider_length' => '200px',
+			'#display_bubble' => TRUE,
+			'#display_bubble_format' => '%{value}%%',
+			'#ajax' => array(
+		    	'callback' => 'valid_check_callback',
+		    	'wrapper' => 'valid_check_div',
+    		),
+		);
+
+		$tot_per = null;
+
+		if(!(empty($form_state['values']['cho_slider']['value']) && empty($form_state['values']['pro_slider']['value']) && empty($form_state['values']['fat_slider']['value']))) {
+			$tot_per = $form_state['values']['cho_slider']['value'] + $form_state['values']['pro_slider']['value'] + $form_state['values']['fat_slider']['value'];
+			$tot_per = ($tot_per == 100) ? 'green;" >Total: '.$tot_per : 'red;" >Total: '.$tot_per;
+			//$form['sliders']['cho_value']['#default_value'] = round(($energy * $form_state['values']['cho_slider']['value'])/400,2); // . "<br/>Protein: " . round(($energy * 0.15)/4,2) . "<br/>Fat: " . round(($energy * 0.25)/4,2);
+		}
+		else
+			$tot_per = 'green;" >Total: ' . 100 . '%';
+
+		
+		$form['sliders']['valid_check'] = array(
+			'#markup' => t('<h3 style="color: '. $tot_per .'</h3>' ),
+			'#prefix' => '<div id="valid_check_div">',
+			'#suffix' => '</div>',
+		);
+
+		$form['feed_type'] = array(
+			'#type' => 'select',
+			'#title' => t('Feeding method'),
+			'#options' => array(
+				'Enteral' => 'Enteral/NGT/FJ',
+				'Parenteral IV' => 'Parenteral IV',
+				//'NGT' => 'NGT',
+				'Normal' => 'Normal',
+				),
+			'#required' => TRUE,
+		);
+
+		$form['food_type'] = array(
+			'#type' => 'select',
+			'#title' => t('Food Type'), 
+			'#options' => array(
+				/* 'Fluid' => 'Fluid diet',
+				'Semisolid' => 'Semi-solid diet',
+				'Soft' => 'Soft diet', */
+				'Normal' => 'Normal diet',
+				null => '-Select-',
+				),
+			'#default_value' => 'Normal',
+			'#states' => array(
+				'visible' => array(
+	      			array(':input[name="feed_type"]' => array('value' => 'Normal'),
+	      				),/*
+	      			array(':input[name="feed_type"]' => array('value' => 'NGT'),
+	      				),*/
+	    		),
+	  		),
+		);
+
+		$form['food_pref'] = array(
+			'#type' => 'checkbox',
+			'#title' => t('Veg only'), 
+			'#default_value' => !variable_get('food_preference'),
+			'#states' => array(
+				'visible' => array(
+	      			array(':input[name="feed_type"]' => array('value' => 'Normal'),
+	      				),
+	    		),
+	  		),
+		);
+
+		$form['veg_egg_pref'] = array(
+			'#type' => 'checkbox',
+			'#title' => t('Egg Prefered'), 
+			'#default_value' => variable_get('checkbox', FALSE),
+			'#states' => array(
+				'visible' => array(
+	      			':input[name="feed_type"]' => array('value' => 'Normal')
+	      				,
+	      			':input[name="food_pref"]' => array('checked' => TRUE)
+	      				,
+	    		),
+	  		),
+		);
+
+		$form['coconut'] = array(
+			'#type' => 'checkbox',
+			'#title' => t('Coconut Prefered'), 
+			'#default_value' => variable_get('checkbox', FALSE),
+			'#states' => array(
+				'visible' => array(
+	      			array(':input[name="feed_type"]' => array('value' => 'Normal'),
+	      				),
+	    		),
+	  		),
+		);
+
+		$form['pro_feed_type'] = array(
+			'#type' => 'checkbox',
+			'#title' => t('Protein take, preferable through Supplements'), 
+			'#default_value' => variable_get('checkbox', FALSE),
+			'#states' => array(
+				'visible' => array(
+	      			array(':input[name="feed_type"]' => array('value' => 'Normal'),
+	      				),
+	    		),
+	  		),
+		);
+
+		// ********* Allergens list (using DataBase) ***********
+		
+		$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = :type', array(':type' => 'allergen'));
+		
+		$opts = $query->fetchAllKeyed();
+
+		//$query_all = db_query('SELECT p.allergens, p.disease_ids FROM {patient_details} p WHERE p.p_id = :pid', array(':pid' => $_SESSION['pid']));
+
+		$form['allergen'] = array(
+			'#type' => 'select',
+			'#title' => t('Allergens'), 
+			'#options' => $opts,
+			'#multiple' => TRUE,
+			'#chosen' => TRUE,
+			'#default_value' => $def_allergens, //array(25, 28),
+		);
+
+		// ********* Disease list from the DataBase ***********
+	
+		$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = :type', array(':type' => 'disease'));
+		
+		$opts = $query->fetchAllKeyed();
+
+		$form['diseases'] = array(
+			'#type' => 'select',
+			'#title' => t('Diseases'), 
+			'#options' => $opts,
+			'#multiple' => TRUE,
+			'#chosen' => TRUE,
+			'#default_value' => $def_diseases,
+		);
+
+		// ************ create new diet / from existing diet
+
+		$form['diet_from'] = array(
+			'#type' => 'select',
+			'#title' => t('Diet Creating method'),
+			'#options' => array('newdiet' => 'Create New Diet', 'existing' => 'Create from Existing diet'),
+			'#default' => 'newdiet',
+		);
+
+		$form['submit'] = array(
+			'#value' => t('Submit'),
+			'#type' => 'submit',
+		);
+
+	}
+
+	else {
+
+		$form['denied'] = array(
+			'#markup' => variable_get('denied', t('<h2>Access Denied</h2>')),
+		);
+	}
+
+	return $form;
+	
+}
+
+function diet_pref_form_validate($form, &$form_state) {
+
+	$cho = $form_state['values']['cho_slider']['value'];
+	$pro = $form_state['values']['pro_slider']['value'];
+	$fat = $form_state['values']['fat_slider']['value'];
+
+	if(($cho + $pro + $fat) != 100)
+		form_set_error('sliders', t('Total Requirement is not equalized to 100%'));
+
+}
+
+function diet_pref_form_submit($form, &$form_state) {
+
+	//global $user;
+	$bmr = $form_state['values']['bmr']; 
+	$energy = $form_state['values']['energy'];
+	$cho = $form_state['values']['cho_slider']['value'];
+	$pro = $form_state['values']['pro_slider']['value'];
+	$fat = $form_state['values']['fat_slider']['value'];
+	$aller = $form_state['values']['allergen'];
+	$disea = $form_state['values']['diseases'];
+	$diet_from = $form_state['values']['diet_from'];
+	$aller_str = '';
+	$disea_str = '';
+
+	foreach($aller as $i)
+		$aller_str = $aller_str . $i .',';
+		
+	foreach($disea as $i) 
+		$disea_str = $disea_str . $i. ',';
+
+	$feeding_type = $form_state['values']['feed_type'];
+	$food_type = ($feeding_type == 'Normal') ? $form_state['values']['food_type'] : NULL;
+	$coconut = $form_state['values']['coconut'];
+	$veg = $form_state['values']['food_pref'];
+	$veg_egg_pref = $form_state['values']['veg_egg_pref'];
+	$pro_feed = $form_state['values']['pro_feed_type'];
+	//variable_set('patient_id', $_SESSION['pid']);
+	
+	/* variable_set('f_allergen',$aller);
+	variable_set('g_disease',$disea);
+	variable_set('patient_bmr',$bmr);
+	variable_set('patient_energy',$energy);
+	variable_set('patient_cho',$cho);
+	variable_set('patient_pro',$pro);
+	variable_set('patient_fat',$fat);
+	variable_set('patient_food_type',$food_type);
+	
+	variable_set('patient_diseases',$disea_str);
+	variable_set('patient_allergns',$aller_str);
+	variable_set('patient_feeding_type',$feeding_type);
+	
+	variable_set('patient_food_coconut',$coconut);
+	variable_set('patient_food_veg',$veg);
+	variable_set('patient_food_egg',$veg_egg_pref); */
+	
+	
+	/* $query = db_select('patient_details', 'n');
+	$query->fields('n', array('p_name'));
+	$query->fields('n', array('age'));
+	$query->fields('n', array('gender'));
+	$query->fields('n', array('blood_group'));
+	$query->fields('n', array('place'));
+	$query->fields('n', array('height'));
+	$query->fields('n', array('weight'));
+	$query->fields('n', array('bp')); 
+	//$query->fields('n', array('food_preference'));
+	$query->condition('n.p_id', $_SESSION['pid'], '=');
+	$column = $query->execute();
+	$result = $column->fetchAssoc();
+	
+	
+	variable_set('patient_name', $result['p_name']);
+	variable_set('patient_place', $result['place']);
+	variable_set('patient_age', $result['age']);
+	variable_set('patient_height', $result['height']);
+	variable_set('patient_weight', $result['weight']);
+	variable_set('patient_blood_group', $result['blood_group']);
+	variable_set('patient_bp', $result['bp']);
+	variable_set('patient_gender', $result['gender']);
+	//variable_set('patient_food_preference',$result['food_preference']);
+	*/
+	db_update('patient_details')
+				->fields(array(
+					'allergens' => $aller_str,
+					'disease_ids' => $disea_str,
+				))
+				->condition('p_id',$_SESSION['pid'],'=')
+				->execute();
+
+	$diet_id = db_insert('diet_details')
+				->fields(array(
+					'p_id' => $_SESSION['pid'],
+					'bmr' => $bmr,
+					'energy' => $energy,
+					'cho' => $cho,
+					'pro' => $pro,
+					'fat' => $fat,
+					'feed_type' => $feeding_type,
+					'food_type' => $food_type,
+					'food_pref' => $coconut . $veg . $veg_egg_pref . $pro_feed,
+					'diet_comments' => $diet_from,
+				))->execute();
+				
+	//variable_set('diet_id', $diet_id);
+	$_SESSION['diet_id'] = $diet_id;
+				
+	/* if ($feeding_type == 'NGT'  || $feeding_type == 'Enteral' ){
+			
+		
+		diet_ngt_enteral();
+	} */
+	
+	if ($feeding_type == 'Parenteral IV'){
+		
+		drupal_goto('diet_suggest');
+	}
+	
+	else {
+
+		drupal_goto('food_selection');
+		//diet_normal();
+	}
+	//drupal_goto('food_selection');
+
+}
+
+function valid_check_callback($form, &$form_state) {
+	return $form['sliders']['valid_check'];
+}
+
+/******************************** diet_pref_form ends here ******************************/
+
+
+/************************************* functions to generate food_list starts here ***********************************************/
+function measure_round($quo) {    //this helps in round of to 0.5 values also for cups 0<x<0.25 cup 0 and 0.25<x<0.75 cup 0.5 else cup 1
+	$base_number=floor($quo);
+	$frac_number=($quo-$base_number<0.25)? 0: $quo-$base_number;//if fraction part is less than 0.25 it is equvalent to zero
+	$add_frac=0;
+	
+	if($frac_number != 0) {
+		$add_frac = ($frac_number<0.75)? 0.5:1;
+	}
+
+	$output = $base_number + $add_frac;
+	return $output;
+}
+
+
+
+function diet_ngt_enteral() 
+{
+	
+	$query=db_select('node','n');
+				 $query->fields('n', array('nid'));
+				 $query->condition('n.title','mix','=');
+				 $food_type= $query->execute()->fetchfield();//to get the nid of mix
+				 
+				 
+	$query=db_select('node','n');
+				 $query->fields('n', array('nid'));
+				 $query->condition('n.title','cup','=');
+				 $cup= $query->execute()->fetchfield();//to get the nid of cup
+				 
+				 
+	$query=db_select('node','n');
+				 $query->fields('n', array('nid'));
+				 $query->condition('n.title','Scoop','=');
+				 $scoop= $query->execute()->fetchfield();//to get the nid of scoop
+	
+	$query=db_select('field_data_field_group','n');
+				 $query->fields('n', array('entity_id'));
+				 $query->condition('n.field_group_nid',$food_type,'=');
+				 $query_one= $query->execute()->fetchAll();
+				 $food_list=array();//an multi dimensional array which each each dimension has five elements [nid of food,kcal,cho,prtein,fat]
+				foreach ($query_one as $n) {
+						$node_id =$n->entity_id;
+					$temp=array();
+		// cup,scoop,mix with nid
+					$query=db_select('node','n');
+					$query->fields('n', array('title'));
+					$query->condition('n.nid',$node_id,'=');
+					$food_name= $query->execute()->fetchField();
+
+					$query=db_select('field_data_field_malyalam','n');
+					$query->fields('n', array('field_malyalam_value'));
+					$query->condition('n.entity_id',$node_id,'=');
+					$malyalam= $query->execute()->fetchField();
+					
+										
+					$query=db_select('field_data_field_energy_kcal_','n');
+					$query->fields('n', array('field_energy_kcal__value'));
+					$query->condition('n.entity_id',$node_id,'=');
+					$query_two= $query->execute()->fetchField();
+					
+					$query=db_select('field_data_field_cho','n');
+					$query->fields('n', array('field_cho_value'));
+					$query->condition('n.entity_id',$node_id,'=');
+					$query_three= $query->execute()->fetchField();
+					
+					$query=db_select('field_data_field_protein','n');
+					$query->fields('n', array('field_protein_value'));
+					$query->condition('n.entity_id',$node_id,'=');
+					$query_four= $query->execute()->fetchField();
+					
+					$query=db_select('field_data_field_fat','n');
+					$query->fields('n', array('field_fat_value'));
+					$query->condition('n.entity_id',$node_id,'=');
+					$query_five= $query->execute()->fetchField();
+					
+					$query=db_select('field_data_field_measure_unit','n');
+					$query->fields('n', array('field_measure_unit_nid'));
+					$query->condition('n.entity_id',$node_id,'=');
+					$query_six= $query->execute()->fetchField();
+					
+					$query=db_select('node','n');
+					$query->fields('n', array('title'));
+					$query->condition('n.nid',$query_six,'=');
+					$meas_unit= $query->execute()->fetchField();
+
+					$temp=array('food_name'=>$food_name,'unit'=>$meas_unit,'malyalam'=>$malyalam,'kcal'=>$query_two,'cho'=>$query_three,'protein'=>$query_four,'fat'=>$query_five);
+					
+					$food_list[]=$temp;//has all the mixes
+				}
+				
+				
+				//sorting in desc order of cho always
+				
+				$sort_temp = array();
+				foreach ($food_list as $key => $row)
+				{
+					$sort_temp[$key] = $row['cho'];
+				}
+					array_multisort($sort_temp, SORT_DESC, $food_list);
+				$cho_sort=$food_list;
+				//sort food_list according to the percentages and select nine food items.
+				if(variable_get('patient_pro')<15){
+					$sort_temp = array();
+					foreach ($food_list as $key => $row)
+					{
+						$sort_temp[$key] = $row['protein'];
+					}
+						array_multisort($sort_temp, SORT_ASC, $food_list);
+				}
+				$patient_energy=variable_get('patient_energy');
+				$patient_cho=variable_get('patient_cho')*$patient_energy/400;
+				$patient_protein=variable_get('patient_pro')*$patient_energy/400;
+				$patient_fat=variable_get('patient_fat')*$patient_energy/900;//patient_fat has only percentage selected in diet pref 				
+				$food_suggest=array();//has time, index of food from food list, quantity of the food
+				$no_of_foods=0;
+				
+				$count=0;
+				$cup_quan=array(1,1.5,2,2.5,3);//for cups quantity to be suggested
+				$scoop_num_quan=array(2,3,4,5,6);//for scoops quantity to be suggesteed
+				$i=1;
+
+				while($i < 10) {
+
+					${"q".$i} = ($food_list[$i-1]['unit'] == 'cup') ? $cup_quan : $scoop_num_quan;//quantities to loop through according to if their measuring units are scoops are cups
+					$i=$i+1;
+					
+				}
+
+				$nine_diet=array();
+
+				foreach ($q1 as $_1){
+					foreach($q2 as $_2){
+						foreach($q3 as $_3){
+							foreach($q4 as $_4){
+								foreach($q5 as $_5){
+									foreach($q6 as $_6){
+										foreach($q7 as $_7){
+											foreach($q8 as $_8){
+												foreach($q9 as $_9){
+													$cho_tot=0;
+													$pro_tot=0;
+													$fat_tot=0;
+													$kcal_tot=0;
+													$i=1;
+													while($i<10){
+														$cho_tot=$cho_tot+$food_list[$i-1]['cho']*${"_".$i};//multiplying the quantities taken form each array to add the total cho,pro,fat,kcal.
+														$i=$i+1;
+													}
+													
+													$i=1;
+													while($i<10){
+														$pro_tot=$pro_tot+$food_list[$i-1]['protein']*${"_".$i};
+														$i=$i+1;
+													}
+													
+													$i=1;
+													while($i<10){
+														$fat_tot=$fat_tot+$food_list[$i-1]['fat']*${"_".$i};
+														$i=$i+1;
+													}
+													
+													$i=1;
+													while($i<10){
+														$kcal_tot=$kcal_tot+$food_list[$i-1]['kcal']*${"_".$i};
+														$i=$i+1;
+													}
+													if(abs($patient_energy-$kcal_tot)<150 and 0.8*$patient_cho<$cho_tot and $patient_protein*0.8<$pro_tot /* and $patient_protein*1.3>$pro_tot  */ and $patient_fat*0.6<$fat_tot){
+														//drupal_set_message($kcal_tot.','.$cho_tot.','.$pro_tot.','.$fat_tot);
+														$i=1;
+														while($i<10){
+															$quantity=${'_'.$i};
+															$nine_diet[]=array('food_name'=>$food_list[$i-1]['food_name'],'malyalam'=>$food_list[$i-1]['malyalam'],'quantity'=>$quantity,'unit'=>$food_list[$i-1]['unit'],'kcal'=>$food_list[$i-1]['kcal']*$quantity,'cho'=>$food_list[$i-1]['cho']*$quantity,'protein'=>$food_list[$i-1]['protein']*$quantity,'fat'=>$food_list[$i-1]['fat']*$quantity);
+															$i=$i+1;
+														}
+														break 9;
+													}
+													
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				
+	$sort_temp = array();
+	foreach ($nine_diet as $key => $row)
+	{
+		$sort_temp[$key] = $row['kcal'];
+	}
+
+	array_multisort($sort_temp, SORT_DESC, $nine_diet);
+				
+	variable_set('nine_diet',$nine_diet);
+	drupal_goto('diet_suggest');	
+
+}
+
+
+function food_selection_form($form, &$form_state)	{
+
+	$groups = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = \'food_group\'')->fetchAllKeyed();
+	
+	$opts['null'] = '-Select-';
+	
+	foreach($groups as $key => $i)
+		$opts[$key] = $i;
+	
+	/* $form['food_group'] = array(
+		'#type' => 'select',
+		'#title' => t('food group'), 
+		'#options' => $opts,
+		'#ajax' => array(
+			'callback' => 'food_select',
+			'wrapper' => 'multiselect_div',
+		),
+	);
+	
+	$form['multiselector']=array(
+		'#prefix' => '<div id="multiselect_div" >',
+		'#suffix' => '</div>',
+	);
+	
+	$form['selected_val'] = array(
+		'#type' => 'hidden',
+		'#default_value' => '',
+		'#attributes' => array('id' => array('selected_id')),
+	); */
+	
+	$pid = 0;
+	$diet_id = 0;
+	
+	if(isset($_SESSION['diet_id'])) {
+		$diet_id = $_SESSION['diet_id'];
+	}
+	
+	$diet_data = db_query('SELECT * FROM {diet_details} d WHERE d.diet_id = :d_id', array('d_id' => $diet_id))->fetchAssoc();
+	$p_data = db_query('SELECT * FROM {patient_details} p WHERE p.p_id = :p_id', array('p_id' => $diet_data['p_id']))->fetchAssoc();
+	
+	$temp1 = explode(",", $p_data['allergens']);		//variable_get('f_allergen');
+	$temp3 = explode(",", $p_data['disease_ids']);	//variable_get('g_disease');
+	$food_type = $diet_data['food_type']; 					//variable_get('patient_food_type');
+	
+	//decode energy values to normal cho, pro & fat values  
+	$cho_e = ($diet_data['energy'] * $diet_data['cho']) / 400;
+	$pro_e = ($diet_data['energy'] * $diet_data['pro']) / 400;
+	$fat_e = ($diet_data['energy'] * $diet_data['fat']) / 900;
+	
+	$mng_night_vals =  array('cho' => ($cho_e * 0.25), 'pro' => ($pro_e * 0.25), 'fat' => ($fat_e * 0.25));
+	$lunch_vals =  array('cho' => ($cho_e * 0.35), 'pro' => ($pro_e * 0.45), 'fat' => ($fat_e * 0.35));
+	$break_vals = array('cho' => ($cho_e * 0.25), 'pro' => ($pro_e * 0.15), 'fat' => ($fat_e * 0.25));
+	
+	$nveg_egg_coconut = (($diet_data['food_pref'][1] == '1')?'0':'1') . $diet_data['food_pref'][2] . $diet_data['food_pref'][0];
+	
+	$food_pref_regex = '';
+	$egg_pref_arr = array();
+	
+	if($nveg_egg_coconut[0] == '1') {					//for Non-Veg
+		$food_pref_regex = $food_pref_regex . '__';
+	} else {
+		$food_pref_regex = $food_pref_regex . '0';		//for Veg
+		if($nveg_egg_coconut[1] == '1') {				//checking for veg with egg prefered
+			$food_pref_regex = $food_pref_regex . '_';
+			$egg_pref_arr = array(672 => 'Egg', 673 => 'Egg Boiled', 674 => 'Egg Curry', 675 => 'Egg Scrambled', 804 => 'Egg White');
+		} else {
+			$food_pref_regex = $food_pref_regex . '0';
+		}
+	}
+	
+	$food_pref_regex = $food_pref_regex . '_';	//(($nveg_egg_coconut[2] == '1') ? '1' : '0');		//for coconut pref
+
+	$form['p_details'] = array(
+				'#markup' => '
+					<h3> <b><center> Patient Details </center></b> </h3>
+					<table style="width: 100%">
+							<tr>
+								<th style="background-color: #A9A9A9;">Patient ID </th><td style="background-color: #A9A9A9;">'. $p_data['p_id'] 
+								.'</td>	<th style="background-color: #DCDCDC;">MRD No</th><td style="background-color: #DCDCDC;">'. $p_data['mrd_no'] .'</td>
+								<th style="background-color: #A9A9A9;">Food Preference</th><td style="background-color: #A9A9A9;">'. (($nveg_egg_coconut[0] == '1') ? 'Non-Veg' : 'Veg') . '</td>
+								
+							</tr>
+							<tr>
+								<th style="background-color: #DCDCDC;" >Patient Name/Sex </th>	<td style="background-color: #DCDCDC;">'. $p_data['p_name'] . ' / ' . (($p_data['gender'] == 0) ? 'Male' : 'Female') . '</td>
+								<th style="background-color: #A9A9A9;">Place </th>	<td style="background-color: #A9A9A9;">' . $p_data['place'] . '</td>
+								<th style="background-color: #DCDCDC;">BP </th>	<td style="background-color: #DCDCDC;">' . $p_data['bp'] . ' mmHg</td>
+							</tr>
+							<tr>
+								<th style="background-color: #A9A9A9;" >BMR </th>	<td style="background-color: #A9A9A9;" >'. $diet_data['bmr'] .'</td>
+								<th style="background-color: #DCDCDC;" >Height </th>	<td style="background-color: #DCDCDC;" >' . $p_data['height'] . ' cm</td>
+								<th style="background-color: #A9A9A9;" >Weight </th>	<td style="background-color: #A9A9A9;" >' . $p_data['weight'] . ' kg</td>
+							</tr>
+					</table>
+				<br><br>'
+				);
+
+	array_pop($temp3);			// for remove the empty element in an array
+
+	$desc_avoid = db_query('SELECT field_desc_avoid_foods_value FROM {field_data_field_desc_avoid_foods} WHERE entity_id IN (:nids)', array(':nids' => $temp3))->fetchCol();
+
+	$desc_incl = db_query('SELECT field_desc_include_foods_value FROM {field_data_field_desc_include_foods} WHERE entity_id IN (:nids)', array(':nids' => $temp3))->fetchCol();
+
+	$desc_moder = db_query('SELECT field_desc_moderate_foods_value FROM {field_data_field_desc_moderate_foods} WHERE entity_id IN (:nids)', array(':nids' => $temp3))->fetchCol();
+
+	$desc_avoid = implode(", ", $desc_avoid);
+	
+	$desc_incl = implode(", ", $desc_incl);
+	
+	$desc_moder = implode(", ", $desc_moder);
+
+	$form['prescribs'] = array(
+		'#markup' => theme('table',
+						array(
+							'header' => array('Avoid Food items', 'Include Food items', 'Moderate Food items'), 
+							'rows' => array(array($desc_avoid, $desc_incl, $desc_moder))
+							)
+						)
+					);
+
+ 
+	unset($desc_avoid);
+	unset($desc_incl);
+	unset($desc_moder); 
+
+	//$rows = array();
+
+	if($diet_data['diet_comments'] == 'existing') {
+		$rows = db_query('SELECT a.rows FROM {combination_of_foods} a WHERE a.combination_id = 
+										(SELECT MAX(c.combination_id) FROM {combination_of_foods} c WHERE c.visit_id = 
+											(SELECT MAX(v.visit_id) FROM {visit_details} v WHERE v.p_id = ' . $diet_data['p_id'] .'))')->fetchField();
+
+		//$header = array('time' => t('Time'), 'item' => t('Food Item'), 'qty' => t('Quantity'));
+
+		$form = array_merge($form, unserialize($rows));
+
+		/* $form['table'] = array(
+								'#markup' => theme('table', array('header' => $header, 'rows' => $rows))
+								); */
+		
+
+		//unset($rows);
+		goto lable;
+	} 
+
+	if($diet_data['feed_type'] == 'Enteral') {
+
+		$mixes = array(785, 786, 747, 781, 716, 782, 784, 783);			//  db_query('SELECT n.nid from {node} n WHERE n.nid IN (SELECT g.entity_id FROM {field_data_field_group} g WHERE g.field_group_nid = 62)')->fetchAll();
+
+		$mix_nodes = array();
+
+		foreach($mixes as $i) {
+			$node = node_load($i);
+
+			$scale = ($i == 781) ? 1.25 : (($i == 783) ? 1.55 : 1);
+
+			$mix_nodes[$i] = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'] * $scale,
+								'protein' => $node->field_protein['und'][0]['value'] * $scale, 'fat' => $node->field_fat['und'][0]['value'] * $scale,
+								'cho' => $node->field_cho['und'][0]['value'] * $scale, 'qty' => 200 * $scale);//, 'group' => $node->field_group['und'][0]['nid']);
+		}
+
+		//$mixes = array('6.00 AM' => 785, '8.00 AM' => 786, '10.00 AM' => 747, '12.00 PM' => 781, '2.00 PM' => 716, '4.00 PM' => 782, '6.00 PM' => 785, '8.00 PM' => 784, '10.00 PM' => 783);	//with time format
+		$mixes = array('qty_6am' => array('6.00 AM', 785), 'qty_8am' => array('8.00 AM', 786), 'qty_10am' => array('10.00 AM', 747), 'qty_12pm' => array('12.00 PM', 781), 'qty_2pm' => array('2.00 PM', 716), 'qty_4pm' => array('4.00 PM', 782), 'qty_6pm' => array('6.00 PM', 785), 'qty_8pm' => array('8.00 PM', 784), 'qty_10pm' => array('10.00 PM', 783));	//with time format
+
+		$mixes_achieved = array('kcal' => 0, 'cho' => 0, 'protein' => 0, 'fat' => 0);
+
+		$header = array('time' => t('Time'), 'item' => t('Food Item'), 'qty' => t('Quantity'));
+
+		$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = \'unit\'')->fetchAllKeyed();
+	
+		foreach($mixes as $key => $value) {
+			$mixes_achieved['kcal'] += $mix_nodes[$value[1]]['kcal'];
+			$mixes_achieved['cho'] += $mix_nodes[$value[1]]['cho'];
+			$mixes_achieved['protein'] += $mix_nodes[$value[1]]['protein'];
+			$mixes_achieved['fat'] += $mix_nodes[$value[1]]['fat'];
+			//'nid' => array('data' => $break['6am']['nid'], 'style' => 'display: none')
+			/* $rows[] = array('time' => $key,
+							'item' => $mix_nodes[$value]['title'],
+							'qty' => array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($mix_nodes[$value]['qty'] . ' ' . $query[$mix_nodes[$value]['unit']]))),
+							'nid' => array('data' => $mix_nodes[$value]['nid'], 'style' => 'display: none')
+							); */
+
+			$form[$key] = array(
+				'#type' => 'textfield',
+				'#default_value' => $mix_nodes[$value[1]]['qty'] . ' ' . $query[$mix_nodes[$value[1]]['unit']],
+				'#prefix' => '<tr><td>' . $value[0] . '</td><td>' . $mix_nodes[$value[1]]['title'] . '</td><td>',
+				'#suffix' => '</td><td style="display: none;">' . $mix_nodes[$value[1]]['nid'] . '</td></tr>',
+				'#size' => 10,
+			);
+		}
+
+		$form['qty_10pm']['#suffix'] = $form['qty_10pm']['#suffix'] . '</tbody></table>';
+
+		/* $form['table'] = array(
+								'#markup' => theme('table', array('header' => $header, 'rows' => $rows))
+								); */		
+
+		//$_SESSION['rows'] = serialize($rows);
+
+		/* $form['rows_vals'] = array(
+			'#type' => 'hidden',
+			'#value' => serialize($rows),
+		); */
+
+		//unset($rows);
+
+		goto lable;
+
+		//drupal_add_js(drupal_get_path('module', 'patient') . '/patient_js.js');
+		//return $form;
+	} 
+	 
+	$mng_foods = db_query('SELECT n.nid, n.title FROM node n WHERE 
+		n.nid NOT IN (SELECT a.entity_id FROM field_data_field_allergen a WHERE a.field_allergen_nid IN (:anid)) AND 
+			n.nid NOT IN (SELECT b.field_avoid_food_items_nid FROM field_data_field_avoid_food_items b WHERE b.entity_id IN (:fnid)) AND
+				n.nid IN (SELECT c.entity_id FROM field_data_field_time_category c WHERE c.field_time_category_value = \'Morning\' OR c.field_time_category_value = \'Night\') AND
+					n.nid IN (SELECT d.entity_id FROM field_data_field_food_type d WHERE d.field_food_type_value LIKE :type) AND
+						n.nid IN (SELECT e.entity_id FROM field_data_field_nveg_egg_coconut e WHERE e.field_nveg_egg_coconut_value LIKE \''. $food_pref_regex .'\')', 
+							array(':anid' => $temp1, ':fnid' => $temp3, ':type' => '%' . db_like($food_type) . '%'))->fetchAllKeyed();
+						
+	//print_r(array('anid'=>$temp1, 'fnid' => $temp3));
+
+	foreach($egg_pref_arr as $i => $j)
+		$mng_foods[$i] = $j;		//adding $egg_pref_arr elements to the $mng_foods array
+		
+	/* if($diet_data['food_pref'][3] == '1') {
+		$mng_foods[635] = 'B-Protein';
+		$mng_foods[792] = 'D Protein';
+	} */
+		
+	
+	$mng_nodes_tiffen = array();
+	//$mng_nodes_chutney = array();
+
+	$nit_nodes_tiffen = array();
+	
+	foreach($mng_foods as $i => $j) {
+		$node = node_load($i);
+
+		if($node->field_group['und'][0]['nid'] == 72 || $node->field_group['und'][0]['nid'] == 66)		//select only tiffen group food items
+		foreach($node->field_time_category['und'] as $p ) {
+			switch($p['value']) {
+				case 'Morning': 
+					$mng_nodes_tiffen[] = array('nid' => $i, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+								'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+								'cho' => $node->field_cho['und'][0]['value'], 'qty' => 1);//, 'group' => $node->field_group['und'][0]['nid']);
+					break;
+				
+				case 'Night':
+					$nit_nodes_tiffen[] = array('nid' => $i, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+								'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+								'cho' => $node->field_cho['und'][0]['value'], 'qty' => 1);//, 'group' => $node->field_group['und'][0]['nid']);
+					break;
+			}
+		}
+	}
+	
+	$random_index_mng = array_rand($mng_nodes_tiffen, 1);
+	$random_index_nit = array_rand($nit_nodes_tiffen, 1);
+	
+	/*************	Morning Curry Items	***********************/
+	$query = db_query('SELECT n.nid FROM {node} n WHERE n.nid IN (SELECT c.field_curry_item_nid FROM {field_data_field_curry_item} c INNER JOIN {field_data_field_main_item} m 
+						WHERE c.entity_id = m.entity_id AND m.field_main_item_nid = ' . $mng_nodes_tiffen[$random_index_mng]['nid'] . ')')->fetchAll();
+	
+	$query1 = db_query('SELECT n.nid FROM {node} n WHERE n.nid IN (SELECT c.field_curry_item_nid FROM {field_data_field_curry_item} c INNER JOIN {field_data_field_main_item} m 
+						WHERE c.entity_id = m.entity_id AND m.field_main_item_nid = ' . $nit_nodes_tiffen[$random_index_nit]['nid'] . ')')->fetchAll();
+
+	//substr($side_dish_nids, 0, strlen($side_dish_nids)-1)
+
+	$node = node_load($query[array_rand($query)]->nid);
+	$mng_curry_node = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+								'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+								'cho' => $node->field_cho['und'][0]['value'], 'qty' => 1);
+
+	$nit_curry_node = array();
+	$nit_addons_node = array();
+
+	if($nit_nodes_tiffen[$random_index_nit]['nid'] == 752) {
+		$node = node_load($query1[0]->nid);
+		$nit_curry_node = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+								'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+								'cho' => $node->field_cho['und'][0]['value'], 'qty' => 1);
+		
+		$node = node_load($query1[1]->nid);
+		$nit_addons_node = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+								'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+								'cho' => $node->field_cho['und'][0]['value'], 'qty' => 1);
+	} else {
+		$node = node_load($query1[array_rand($query1)]->nid);
+		$nit_curry_node = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+								'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+								'cho' => $node->field_cho['und'][0]['value'], 'qty' => 1);
+		
+		$nit_addons_node = array('nid' => 0, 'title' => 0, 'unit' => 0, 'kcal' => 0,
+								'protein' => 0, 'fat' => 0,	'cho' => 0, 'qty' => 0);
+	}
+	/*************	Morning Addons Items **********************/
+	$mng_addons_nid = array(661, 765, 770);		//coffee, tea, vada
+	$mng_addons_node = $mng_addons_nid[array_rand($mng_addons_nid)];
+
+	$node = node_load($mng_addons_node);
+	
+	if(in_array(26, $temp3) && ($mng_addons_node == 765))
+		$nod = node_load(808);		
+
+	$mng_addons_node = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+								'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+								'cho' => $node->field_cho['und'][0]['value'], 'qty' => 1);
+
+	/* $nit_addons_nid = array(661, 765);		//coffee, tea
+	$nit_addons_node = $nit_addons_nid[array_rand($nit_addons_nid)];
+
+	$node = node_load($query1[0]);
+	$nit_addons_node = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+								'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+								'cho' => $node->field_cho['und'][0]['value']); */
+	
+	/*************************	Calculating equalized values from the requirements for Morning 	**************************/
+	
+	$mng_achieved_vals = array('kcal' => ($mng_curry_node['kcal'] + $mng_addons_node['kcal']), 
+							   'protein' => ($mng_curry_node['protein'] + $mng_addons_node['protein']),
+							   'fat' => ($mng_curry_node['fat'] + $mng_addons_node['fat']),
+							   'cho' => ($mng_curry_node['cho'] + $mng_addons_node['cho'])
+								);	//Morning achieved values for only curry + addon item
+
+	 $nit_achieved_vals = array('kcal' => ($nit_curry_node['kcal'] + $nit_addons_node['kcal']), 
+							   'protein' => ($nit_curry_node['protein'] + $nit_addons_node['protein']),
+							   'fat' => ($nit_curry_node['fat'] + $nit_addons_node['fat']),
+							   'cho' => ($nit_curry_node['cho'] + $nit_addons_node['cho'])
+								);	//Night achieved values for only curry + addon item 
+
+	$mng_main_item_nos = ceil(($mng_night_vals['cho'] - $mng_achieved_vals['cho'])/$mng_nodes_tiffen[$random_index_mng]['cho']);
+	$nit_main_item_nos = ceil(($mng_night_vals['cho'] - $nit_achieved_vals['cho'])/$nit_nodes_tiffen[$random_index_nit]['cho']);
+
+	//$tmp_mng = array('m_kcal' => 0, 'm_cho' => 0, 'm_protein' => 0, 'm_fat' => 0);
+	//$tmp_nit = array('n_kcal' => 0, 'n_cho' => 0, 'n_protein' => 0, 'n_fat' => 0);
+
+	//$mng_achieved_vals = array('kcal' => 1, 'cho' => 1, 'protein' => 1, 'fat' => 1);
+	//$nit_achieved_vals = array('kcal' => 1, 'cho' => 1, 'protein' => 1, 'fat' => 1);
+
+		$tmp_mng = array('m_kcal' => $mng_nodes_tiffen[$random_index_mng]['kcal'] * $mng_main_item_nos,
+						 'm_cho' => $mng_nodes_tiffen[$random_index_mng]['cho'] * $mng_main_item_nos, 
+					 	 'm_protein' => $mng_nodes_tiffen[$random_index_mng]['protein'] * $mng_main_item_nos,
+						 'm_fat' => $mng_nodes_tiffen[$random_index_mng]['fat'] * $mng_main_item_nos,
+						 );
+
+		$mng_achieved_vals = array('kcal' => round($mng_achieved_vals['kcal'] + $tmp_mng['m_kcal']),
+								   'cho' => round($mng_achieved_vals['cho'] + $tmp_mng['m_cho']),
+								   'protein' => round($mng_achieved_vals['protein'] + $tmp_mng['m_protein']), 
+								   'fat' => round($mng_achieved_vals['fat'] + $tmp_mng['m_fat']), 
+								   );
+
+		$tmp_nit = array('n_kcal' => $nit_nodes_tiffen[$random_index_nit]['kcal'] * $nit_main_item_nos,  
+						 'n_cho' => $nit_nodes_tiffen[$random_index_nit]['cho'] * $nit_main_item_nos, 
+				 		 'n_protein' => $nit_nodes_tiffen[$random_index_nit]['protein'] * $nit_main_item_nos,
+				 		 'n_fat' => $nit_nodes_tiffen[$random_index_nit]['fat'] * $nit_main_item_nos 
+						 );
+
+		$nit_achieved_vals = array('kcal' => round($nit_achieved_vals['kcal'] + $tmp_nit['n_kcal']),
+								   'cho' => round($nit_achieved_vals['cho'] + $tmp_nit['n_cho']),
+								   'protein' => round($nit_achieved_vals['protein'] + $tmp_nit['n_protein']),  
+							   	   'fat' => round($nit_achieved_vals['fat'] + $tmp_nit['n_fat']), 
+								   );
+
+	/***********************	FETCHING UNIT TABLE VALUES FROM DB USING NODE_IDS	***********************/
+
+	//$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.nid IN (:nids)',array(':nids' => array($mng_nodes_tiffen[$random_index_mng]['unit'], $mng_curry_node['unit'], $mng_addons_node['unit'])))->fetchAllKeyed();
+
+	//$query1 = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.nid IN (:nids)',array(':nids' => array($nit_nodes_tiffen[$random_index_nit]['unit'], $nit_curry_node['unit'], ($random_index_nit == 752) ? $nit_addons_node['unit'] : 0)))->fetchAllKeyed();
+
+	/************************	ENDS HERE	***************************/
+
+	/* $tab_str = '<table border=1px cellpadding=5px><tr><th>Item</th><th>Qty</th></tr>';
+
+	$tab_str = $tab_str . '<tr><td>' . $mng_nodes_tiffen[$random_index_mng]['title'] . '</td><td>' . $mng_main_item_nos . ' ' . $query[$mng_nodes_tiffen[$random_index_mng]['unit']] . '</td></tr>';
+	$tab_str = $tab_str . '<tr><td>' . $mng_curry_node['title'] . '</td><td> 1 '. $query[$mng_curry_node['unit']] . '</td></tr>';
+	$tab_str = $tab_str . '<tr><td>' . $mng_addons_node['title'] . '</td><td> 1 ' . $query[$mng_addons_node['unit']] . '</td></tr>';
+	$tab_str = $tab_str . '<tr><td> - </td><td> - </td></tr>';
+	$tab_str = $tab_str . '<tr><td>' . $nit_nodes_tiffen[$random_index_nit]['title'] . '</td><td>' . $nit_main_item_nos . ' ' . $query1[$nit_nodes_tiffen[$random_index_nit]['unit']] . '</td></tr>';
+	$tab_str = $tab_str . '<tr><td>' . $nit_curry_node['title'] . '</td><td> 1 '. $query1[$nit_curry_node['unit']] . '</td></tr>';
+	if($nit_nodes_tiffen[$random_index_nit]['nid'] == 752)
+		$tab_str = $tab_str . '<tr><td>' . $nit_addons_node['title'] . '</td><td> 1 ' . $query1[$nit_addons_node['unit']] . '</td></tr>';
+ */
+	//drupal_set_message(var_dump($mng_achieved_vals));
+	//drupal_set_message(var_dump($nit_achieved_vals));
+
+	unset($mng_foods);
+	unset($tmp_mng);
+	unset($tmp_nit);
+
+	/* ************ 	Morning & Night Sessions ENDS here	************ */
+
+	/* ************ 	Lunch Session Starts here	************ */
+
+
+	//$food_pref_regex = substr($food_pref_regex, 0, -1) . (($nveg_egg_coconut[2] == '1') ? '1' : '0');		//for coconut pref 		//$food_pref_regex . '_';
+
+	$lunch_foods = db_query('SELECT n.nid, n.title FROM node n WHERE 
+		n.nid NOT IN (SELECT a.entity_id FROM field_data_field_allergen a WHERE a.field_allergen_nid IN (:anid)) AND 
+			n.nid NOT IN (SELECT b.field_avoid_food_items_nid FROM field_data_field_avoid_food_items b WHERE b.entity_id IN (:fnid)) AND
+				n.nid IN (SELECT c.entity_id FROM field_data_field_time_category c WHERE c.field_time_category_value = \'Lunch\' ) AND
+					n.nid IN (SELECT d.entity_id FROM field_data_field_food_type d WHERE d.field_food_type_value LIKE :type) AND
+						n.nid IN (SELECT e.entity_id FROM field_data_field_nveg_egg_coconut e WHERE e.field_nveg_egg_coconut_value LIKE \'' . $food_pref_regex . '\') AND
+							n.nid IN (SELECT f.entity_id FROM field_data_field_group f WHERE f.field_group_nid IN (55, 791))', 
+								array(':anid' => $temp1, ':fnid' => $temp3, ':type' => '%' . db_like($food_type) . '%'))->fetchAllKeyed();
+	
+	
+	$node = node_load(752);		//rice food_item
+	$lunch_nodes_main = array('nid' => 752, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+								'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+								'cho' => $node->field_cho['und'][0]['value'], 'qty' => 1);//, 'group' => $node->field_group['und'][0]['nid']); );
+
+	$lunch_nodes_curry = array();
+	$lunch_nodes_addon = array();
+	
+	foreach($lunch_foods as $i => $j) {
+		$node = node_load($i);
+
+			switch($node->field_group['und'][0]['nid']) {
+				case 55: {				//curry items
+					if($nveg_egg_coconut[0] == $node->field_nveg_egg_coconut['und'][0]['value'][0])
+						$lunch_nodes_curry[] = array('nid' => $i, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+													 'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+													 'cho' => $node->field_cho['und'][0]['value'], 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value'], 'qty' => 1);
+					break;
+				}
+				case 791: { 				//lunch_add-on items
+					if($nveg_egg_coconut[2] == $node->field_nveg_egg_coconut['und'][0]['value'][2])		//matching pattern for coconur pref
+						$lunch_nodes_addon[] = array('nid' => $i, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+									'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+									'cho' => $node->field_cho['und'][0]['value'], 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value'], 'qty' => 1);
+					break;
+				}
+			}
+	}
+	
+	$lunch_nodes_curry_veg = array();
+
+	foreach(array(755, 800) as $i) {
+		
+		$node = node_load($i);
+		$lunch_nodes_curry_veg[] = array('nid' => $i, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+										 'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+										 'cho' => $node->field_cho['und'][0]['value'], 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value'], 'qty' => 1);
+	}
+
+	usort($lunch_nodes_curry, "my_cmp");
+	usort($lunch_nodes_addon, "my_cmp");
+
+	$lunch_curry_rand_i = rand(0, ceil(sizeof($lunch_nodes_curry) * 0.30));
+	$lunch_addon_rand_i = rand(0, ceil(sizeof($lunch_nodes_addon) * 0.30));
+	$lunch_curry_rand_veg_i = array_rand($lunch_nodes_curry_veg);
+
+	$lunch_achieved_vals = array(
+		'kcal' => round($lunch_nodes_main['kcal'] + $lunch_nodes_curry[$lunch_curry_rand_i]['kcal'] + $lunch_nodes_addon[$lunch_addon_rand_i]['kcal']),
+		'cho' => round($lunch_nodes_main['cho'] + $lunch_nodes_curry[$lunch_curry_rand_i]['cho'] + $lunch_nodes_addon[$lunch_addon_rand_i]['cho']),
+		'protein' => round($lunch_nodes_main['protein'] + $lunch_nodes_curry[$lunch_curry_rand_i]['protein'] + $lunch_nodes_addon[$lunch_addon_rand_i]['protein']),
+		'fat' => round($lunch_nodes_main['fat'] + $lunch_nodes_curry[$lunch_curry_rand_i]['fat'] + $lunch_nodes_addon[$lunch_addon_rand_i]['fat']),
+		);
+
+	if($nveg_egg_coconut[0] == 1)
+		$lunch_achieved_vals = array(
+		'kcal' => round($lunch_achieved_vals['kcal'] + $lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['kcal']),
+		'cho' => round($lunch_achieved_vals['cho'] + $lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['cho']),
+		'protein' => round($lunch_achieved_vals['protein'] + $lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['protein']),
+		'fat' => round($lunch_achieved_vals['fat'] + $lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['fat']),
+		);	
+
+	//drupal_set_message(var_dump($lunch_achieved_vals));
+
+	//$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.nid IN (:nids)',array(':nids' => array($lunch_nodes_main['unit'], $lunch_nodes_curry[$lunch_curry_rand_i]['unit'], $lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['unit'], $lunch_nodes_addon[$lunch_addon_rand_i]['unit'])))->fetchAllKeyed();
+	
+	/* $tab_str = $tab_str . '<tr><td> - </td><td> - </td></tr><tr><td>' . $lunch_nodes_main['title'] . '</td><td> 1 ' . $query[$lunch_nodes_main['unit']] . '</td></tr>';
+	$tab_str = $tab_str . '<tr><td>' . $lunch_nodes_curry[$lunch_curry_rand_i]['title'] . '</td><td> 1 ' . $query[$lunch_nodes_curry[$lunch_curry_rand_i]['unit']] . '</td></tr>';
+	if($nveg_egg_coconut[0] == 1)
+		$tab_str = $tab_str . '<tr><td>' . $lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['title'] . '</td><td> 1 ' . $query[$lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['unit']] . '</td></tr>';
+	$tab_str = $tab_str . '<tr><td>' . $lunch_nodes_addon[$lunch_addon_rand_i]['title'] . '</td><td> 1 ' . $query[$lunch_nodes_addon[$lunch_addon_rand_i]['unit']] . '</td></tr>';
+	 */
+	//drupal_set_message($tab_str.'</table>');
+
+	unset($lunch_foods);
+	unset($query);
+	unset($query1);
+
+	/* ************ 	Lunch Session ENDS here	************ */
+
+	/* ************ 	Break sessions STARTS here ********* */
+
+	$break = array();
+
+	if(in_array(26, $temp3)) {					// for diabetes patients
+		$break['6am'] = array(661, 808);		// coffee, tea
+		$break['6am'] = $break['6am'][array_rand($break['6am'])];
+		$node = node_load($break['6am']);
+
+		$break['6am'] = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+							  'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+							  'cho' => $node->field_cho['und'][0]['value'], 'qty' => 1 ); //, 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value']
+		//. ($node->nid == 765) ? ' (without Sugar)' : $node->title . ' ' . $node->field_malyalam['und'][0]['value']
+		$node = node_load(641);		// butter_milk
+		$break['10am'] = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+							   'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+							   'cho' => $node->field_cho['und'][0]['value'], 'qty' => 200); //, 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value']
+
+		if($break['6am']['nid'] == 808) {				//checking for already tea fetched
+			$break['4pm'][0] = $break['6am'];
+		} else if($mng_addons_node['nid'] == 808) {		//checking for already tea fetched
+			$break['4pm'][0] = $mng_addons_node;
+		} else {										//if not fetching from DB
+			$node = node_load(808);		// tea
+			$break['4pm'][0] = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+							   		'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+							   		'cho' => $node->field_cho['und'][0]['value'], 'qty' => 1); //, 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value']
+		}
+
+		$break['4pm'][1] = array(632, 757, 804, 805);			// marie_gold, sandwich, egg_white, arrow_root_biscuit
+		$break['4pm'][1] = $break['4pm'][1][array_rand($break['4pm'][1])];
+		$node = node_load($break['4pm'][1]);
+		$scale = ($node->nid==757)?1:4;
+		$break['4pm'][1] = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'] * $scale,
+							  'protein' => $node->field_protein['und'][0]['value'] * $scale, 'fat' => $node->field_fat['und'][0]['value'] * $scale,
+							  'cho' => $node->field_cho['und'][0]['value'] * $scale, 'qty' => $scale); // , 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value']
+		unset($scale);
+		
+		 if($diet_data['food_pref'][3] == '1' || $nveg_egg_coconut[0] == '0') {
+			$node = node_load(807);						// D-Protein + Skim_milk
+			$break['10pm'] = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+							  'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+							  'cho' => $node->field_cho['und'][0]['value'], 'qty' => 200); // , 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value']
+		} else { 
+			$break['10pm'] = array(689, 724, 737);				// Guava, Papaya, Pomegranate
+			$break['10pm'] = $break['10pm'][array_rand($break['10pm'])];
+			$node = node_load($break['10pm']);			
+			$break['10pm'] = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+							  'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+							  'cho' => $node->field_cho['und'][0]['value'], 'qty' => ($node->nid==807)?200:100); // , 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value']
+		} 
+
+	} 
+	else {											// for non-diabetes patients
+		$break['6am'] = array(661, 765, 793);		// coffee, tea, skimmed_milk
+		$break['6am'] = $break['6am'][array_rand($break['6am'])];
+		$node = node_load($break['6am']);
+		
+		$break['6am'] = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+							  'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+							  'cho' => $node->field_cho['und'][0]['value'], 'qty' => (($node->nid==793)?200:1)); // , 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value']
+		
+		// for fetching fresh juices
+		$query = db_query('SELECT n.nid FROM {node} n WHERE n.nid IN (SELECT g.entity_id FROM {field_data_field_group} g WHERE g.field_group_nid = 60)')->fetchAll();
+
+		$node = node_load($query[array_rand($query)]->nid);
+		$break['10am'] = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+						 	   'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+						  	   'cho' => $node->field_cho['und'][0]['value'], 'qty' => 200); // 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value']
+ 
+		if($break['6am']['nid'] == 765) {				//checking for already tea fetched
+			$break['4pm'][0] = $break['6am'];
+		} else if($mng_addons_node['nid'] == 765) {		//checking for already tea fetched
+			$break['4pm'][0] = $mng_addons_node;
+		} else {										//if not fetching from DB
+			$node = node_load(765);		// tea
+			$break['4pm'][0] = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+							   		'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+							   		'cho' => $node->field_cho['und'][0]['value'], 'qty' => 1); // 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value']
+		}
+
+		$break['4pm'][1] = array(632, 757, 804, 805);			// marie_gold, sandwich, egg_white, arrow_root_biscuit
+		$break['4pm'][1] = $break['4pm'][1][array_rand($break['4pm'][1])];
+		$node = node_load($break['4pm'][1]);
+		$scale = ($node->nid==757)?1:4;
+		$break['4pm'][1] = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'] * $scale,
+							  'protein' => $node->field_protein['und'][0]['value'] * $scale, 'fat' => $node->field_fat['und'][0]['value'] * $scale,
+							  'cho' => $node->field_cho['und'][0]['value'] * $scale, 'qty' => $scale); // , 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value']
+		unset($scale);
+
+		if($diet_data['food_pref'][3] == '1' || $nveg_egg_coconut[0] == '0') {
+			$node = node_load(806);						// B-Protein + Skim_Milk
+			$break['10pm'] = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+							  'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+							  'cho' => $node->field_cho['und'][0]['value'], 'qty' => 200); // , 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value']
+		} else {
+			$break['10pm'] = array(689, 724, 737);				// Guava, Papaya, Pomegranate
+			$break['10pm'] = $break['10pm'][array_rand($break['10pm'])];
+			$node = node_load($break['10pm']);			
+			$break['10pm'] = array('nid' => $node->nid, 'title' => $node->title . ' ' . $node->field_malyalam['und'][0]['value'], 'unit' => $node->field_measure_unit['und'][0]['nid'], 'kcal' => $node->field_energy_kcal_['und'][0]['value'],
+							  'protein' => $node->field_protein['und'][0]['value'], 'fat' => $node->field_fat['und'][0]['value'],
+							  'cho' => $node->field_cho['und'][0]['value'], 'qty' => 100); // , 'nveg_egg_coc' => $node->field_nveg_egg_coconut['und'][0]['value']
+		} 
+	}
+
+	$b_vals = array('kcal' => 0, 'cho' => 0, 'protein' => 0, 'fat' => 0);
+
+	foreach($break as $i => $j) {
+		if($i == '4pm') {
+			$k = $j[0];
+			$b_vals = array('kcal' => $b_vals['kcal'] + $k['kcal'],
+							'cho' => $b_vals['cho'] + $k['cho'],
+							'protein' => $b_vals['protein'] + $k['protein'],
+							'fat' => $b_vals['fat'] + $k['fat']
+							);
+			$j = $j[1];
+		}
+		$b_vals = array('kcal' => $b_vals['kcal'] + $j['kcal'],
+						'cho' => $b_vals['cho'] + $j['cho'],
+						'protein' => $b_vals['protein'] + $j['protein'],
+						'fat' => $b_vals['fat'] + $j['fat']
+						);
+	}
+
+	$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = \'unit\'')->fetchAllKeyed();
+
+	$header = array('time' => t('Time'), 'item' => t('Food Item'), 'qty' => t('Quantity'));//, 'nid' => t('Nid'));
+
+	/* 6am */
+	//$rows[] = array('time' => '6.00 AM', 'item' => $break['6am']['title'], array('data' => array('#type' => 'textfield', '#default_value' => 'Mohan', '#ajax' => array('callback' => 'onChang_submit', 'wrapper' => 'success_div', 'event' => 'change'))), 'nid' => array('data' => $break['6am']['nid'], 'style' => 'display: none')); 		/* array('#type' => 'textfield', '#size'=> 10, '#value' => t($break['6am']['qty'] . ' ' . $query[$break['6am']['unit']]))) */ //, '#value' => 'MOHAN'
+	/* 8am */
+	//$rows[] = array('time' => array('data' => '8.00 AM', 'rowspan' => 3), 'item' => $mng_nodes_tiffen[$random_index_mng]['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($mng_main_item_nos . ' ' . $query[$mng_nodes_tiffen[$random_index_mng]['unit']]))), 'nid' => array('data' => $mng_nodes_tiffen[$random_index_mng]['nid'], 'style' => 'display: none'));
+	//$rows[] = array('item' => $mng_curry_node['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($mng_curry_node['qty'] . ' '. $query[$mng_curry_node['unit']]))), 'nid' => array('data' => $mng_curry_node['nid'], 'style' => 'display: none'));
+	//$rows[] = array('item' => $mng_addons_node['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($mng_addons_node['qty'] . ' '. $query[$mng_addons_node['unit']]))), 'nid' => array('data' => $mng_addons_node['nid'], 'style' => 'display: none'));
+	/* 10am */
+	//$rows[] = array('time' => '10.00 AM', 'item' => $break['10am']['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($break['10am']['qty'] . ' ' . $query[$break['10am']['unit']]))), 'nid' => array('data' => $break['10am']['nid'], 'style' => 'display: none'));
+	/* 1pm */
+	//$rows[] = array('time' => array('data' => '1.00 PM', 'rowspan' => ($nveg_egg_coconut[0] == 1)?4:3), 'item' => $lunch_nodes_main['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($lunch_nodes_main['qty'] . ' ' . $query[$lunch_nodes_main['unit']]))), 'nid' => array('data' => $lunch_nodes_main['nid'], 'style' => 'display: none'));
+	//$rows[] = array('item' => $lunch_nodes_curry[$lunch_curry_rand_i]['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($lunch_nodes_curry[$lunch_curry_rand_i]['qty'] . ' ' . $query[$lunch_nodes_curry[$lunch_curry_rand_i]['unit']]))), 'nid' => array('data' => $lunch_nodes_curry[$lunch_curry_rand_i]['nid'], 'style' => 'display: none'));
+	//if($nveg_egg_coconut[0] == 1)
+	//	$rows[] = array('item' => $lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['qty'] . ' ' . $query[$lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['unit']]))), 'nid' => array('data' => $lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['nid'], 'style' => 'display: none'));
+	//$rows[] = array('item' => $lunch_nodes_addon[$lunch_addon_rand_i]['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($lunch_nodes_addon[$lunch_addon_rand_i]['qty'] . ' ' . $query[$lunch_nodes_addon[$lunch_addon_rand_i]['unit']]))), 'nid' => array('data' => $lunch_nodes_addon[$lunch_addon_rand_i]['nid'], 'style' => 'display: none'));
+	/* 4pm */
+	//$rows[] = array('time' => array('data' => '4.00 PM', 'rowspan' => 2), 'item' => $break['4pm'][0]['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($break['4pm'][0]['qty'] . ' ' . $query[$break['4pm'][0]['unit']]))), 'nid' => array('data' => $break['4pm'][0]['nid'], 'style' => 'display: none'));
+	//$rows[] = array('item' => $break['4pm'][1]['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($break['4pm'][1]['qty'] . ' ' . $query[$break['4pm'][1]['unit']]))), 'nid' => array('data' => $break['4pm'][1]['nid'], 'style' => 'display: none'));
+	/* 8pm */
+	//$rows[] = array('time' => array('data' => '8.00 PM', 'rowspan' => ($nit_nodes_tiffen[$random_index_nit]['nid'] == 752)?3:2), 'item' => $nit_nodes_tiffen[$random_index_nit]['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($nit_main_item_nos . ' ' . $query[$nit_nodes_tiffen[$random_index_nit]['unit']]))), 'nid' => array('data' => $nit_nodes_tiffen[$random_index_nit]['nid'], 'style' => 'display: none'));
+	//$rows[] = array('item' => $nit_curry_node['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($nit_curry_node['qty'] . ' ' . $query[$nit_curry_node['unit']]))), 'nid' => array('data' => $nit_curry_node['nid'], 'style' => 'display: none'));
+	//if($nit_nodes_tiffen[$random_index_nit]['nid'] == 752)
+	//	$rows[] = array('item' => $nit_addons_node['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($nit_addons_node['qty'] . ' ' . $query[$nit_addons_node['unit']]))), 'nid' => array('data' => $nit_addons_node['nid'], 'style' => 'display: none'));
+	/* 10pm */
+	//$rows[] = array('time' => '10.00 PM', 'item' => $break['10pm']['title'], array('data' => array('#type' => 'textfield', '#size'=> 10, '#value' => t($break['10pm']['qty'] . ' ' . $query[$break['10pm']['unit']]))), 'nid' => array('data' => $break['10pm']['nid'], 'style' => 'display: none'));
+
+	/* $form['table'] = array(
+		'#markup' => theme('table', array('header' => $header, 'rows' => $rows))
+		); */
+
+	$form['qty_6am'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $break['6am']['qty'] .' '. $query[$break['6am']['unit']],
+		'#prefix' => '<tr><td>6.00 AM</td><td>' . $break['6am']['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $break['6am']['nid'] . '</td></tr>',
+		'#size' => 10,
+	);
+
+	$form['qty_8am'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $mng_main_item_nos . ' ' . $query[$mng_nodes_tiffen[$random_index_mng]['unit']],
+		'#prefix' => '<tr><td rowspan="3">8.00 AM</td><td>' . $mng_nodes_tiffen[$random_index_mng]['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $mng_nodes_tiffen[$random_index_mng]['nid'] . '</td></tr>',
+		'#size' => 10,
+	);
+
+	$form['qty_8am_curry'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $mng_curry_node['qty'] . ' '. $query[$mng_curry_node['unit']],
+		'#prefix' => '<tr><td>' . $mng_curry_node['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $mng_curry_node['nid'] . '</td></tr>',
+		'#size' => 10,
+	);
+
+	$form['qty_8am_addon'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $mng_addons_node['qty'] . ' '. $query[$mng_addons_node['unit']],
+		'#prefix' => '<tr><td>' . $mng_addons_node['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $mng_addons_node['nid'] . '</td></tr>',
+		'#size' => 10,
+	);
+
+	$form['qty_10am'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $break['10am']['qty'] . ' ' . $query[$break['10am']['unit']],
+		'#prefix' => '<tr><td>10.00AM</td><td>' . $break['10am']['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $break['10am']['nid'] . '</td></tr>',
+		'#size' => 10,
+	);
+
+	$form['qty_1pm'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $lunch_nodes_main['qty'] . ' ' . $query[$lunch_nodes_main['unit']],
+		'#prefix' => '<tr><td rowspan="'. (($nveg_egg_coconut[0] == 1) ? 4 : 3) . '">1.00 PM</td><td>' . $lunch_nodes_main['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $lunch_nodes_main['nid'] . '</td></tr>',
+		'#size' => 10,
+	);
+
+	$form['qty_1pm_curry'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $lunch_nodes_curry[$lunch_curry_rand_i]['qty'] . ' ' . $query[$lunch_nodes_curry[$lunch_curry_rand_i]['unit']],
+		'#prefix' => '<tr><td>' . $lunch_nodes_curry[$lunch_curry_rand_i]['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $lunch_nodes_curry[$lunch_curry_rand_i]['nid'] . '</td></tr>',
+		'#size' => 10,
+	);
+
+
+	if($nveg_egg_coconut[0] == 1) {
+		$form['qty_1pm_curry_1'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['qty'] . ' ' . $query[$lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['unit']],
+		'#prefix' => '<tr><td>' . $lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $lunch_nodes_curry_veg[$lunch_curry_rand_veg_i]['nid'] . '</td></tr>',
+		'#size' => 10,
+		);
+	}
+
+	$form['qty_1pm_addon'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $lunch_nodes_addon[$lunch_addon_rand_i]['qty'] . ' ' . $query[$lunch_nodes_addon[$lunch_addon_rand_i]['unit']],
+		'#prefix' => '<tr><td>' . $lunch_nodes_addon[$lunch_addon_rand_i]['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $lunch_nodes_addon[$lunch_addon_rand_i]['nid'] . '</td></tr>',
+		'#size' => 10,
+	);
+
+	$form['qty_4pm'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $break['4pm'][0]['qty'] . ' ' . $query[$break['4pm'][0]['unit']],
+		'#prefix' => '<tr><td rowspan="2">4.00 PM</td><td>' . $break['4pm'][0]['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $break['4pm'][0]['nid'] . '</td></tr>',
+		'#size' => 10,
+	);
+
+	$form['qty_4pm_1'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $break['4pm'][1]['qty'] . ' ' . $query[$break['4pm'][1]['unit']],
+		'#prefix' => '<tr><td>' . $break['4pm'][1]['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $break['4pm'][1]['nid'] . '</td></tr>',
+		'#size' => 10,
+	);
+//
+	$form['qty_8pm'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $nit_main_item_nos . ' ' . $query[$nit_nodes_tiffen[$random_index_nit]['unit']],
+		'#prefix' => '<tr><td rowspan="'. (($nit_nodes_tiffen[$random_index_nit]['nid'] == 752)?3:2) .'"></td><td>' . $nit_nodes_tiffen[$random_index_nit]['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $nit_nodes_tiffen[$random_index_nit]['nid'] . '</td></tr>',
+		'#size' => 10,
+	);
+
+	$form['qty_8pm_curry'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $nit_curry_node['qty'] . ' ' . $query[$nit_curry_node['unit']],
+		'#prefix' => '<tr><td>' . $nit_curry_node['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $nit_curry_node['nid'] . '</td></tr>',
+		'#size' => 10,
+	);
+
+	if($nit_nodes_tiffen[$random_index_nit]['nid'] == 752) {
+		$form['qty_8pm_addon'] = array(
+			'#type' => 'textfield',
+			'#default_value' => $nit_addons_node['qty'] . ' ' . $query[$nit_addons_node['unit']],
+			'#prefix' => '<tr><td>' . $nit_addons_node['title'] . '</td><td>',
+			'#suffix' => '</td><td style="display: none;">' . $nit_addons_node['nid'] . '</td></tr>',
+			'#size' => 10,
+		);
+	}
+
+	$form['qty_10pm'] = array(
+		'#type' => 'textfield',
+		'#default_value' => $break['10pm']['qty'] . ' ' . $query[$break['10pm']['unit']],
+		'#prefix' => '<tr><td>10.00 PM</td><td>' . $break['10pm']['title'] . '</td><td>',
+		'#suffix' => '</td><td style="display: none;">' . $break['10pm']['nid'] . '</td></tr></tbody></table>',
+		'#size' => 10,
+	);
+
+
+	//$_SESSION['rows'] = serialize($rows);
+
+	/* $form['rows_vals'] = array(
+		'#type' => 'hidden',
+		'#value' => serialize($rows),
+	); */
+
+	//variable_set('abc_' . rand(5,15), $diet_data['p_id']);
+	//unset($rows);
+
+	/* $achieved = array(
+					'kcal' => round($diet_data['energy'] - ($mng_achieved_vals['kcal'] + $nit_achieved_vals['kcal'] + $lunch_achieved_vals['kcal'] + $b_vals['kcal'])),
+					'cho' => round($cho_e - ($mng_achieved_vals['cho'] + $nit_achieved_vals['cho'] + $lunch_achieved_vals['cho'] + $b_vals['cho'])),
+					'protein' => round($pro_e - ($mng_achieved_vals['protein'] + $nit_achieved_vals['protein'] + $lunch_achieved_vals['protein'] + $b_vals['protein'])),
+					'fat' => round($fat_e - ($mng_achieved_vals['fat'] + $nit_achieved_vals['fat'] + $lunch_achieved_vals['fat'] + $b_vals['fat'])),
+					); */
+
+	$achieved = array(
+					'kcal' => $diet_data['energy'] .'-'. ($mng_achieved_vals['kcal'] + $nit_achieved_vals['kcal'] + $lunch_achieved_vals['kcal'] + $b_vals['kcal']),
+					'cho' => $cho_e .'-'. ($mng_achieved_vals['cho'] + $nit_achieved_vals['cho'] + $lunch_achieved_vals['cho'] + $b_vals['cho']),
+					'protein' => $pro_e .'-'. ($mng_achieved_vals['protein'] + $nit_achieved_vals['protein'] + $lunch_achieved_vals['protein'] + $b_vals['protein']),
+					'fat' => $fat_e .'-'. ($mng_achieved_vals['fat'] + $nit_achieved_vals['fat'] + $lunch_achieved_vals['fat'] + $b_vals['fat']),
+					);
+
+	//drupal_set_message(var_dump($break));
+
+	//drupal_set_message(var_dump($b_vals));
+	//drupal_set_message("Engergy: " . $diet_data['energy']);
+	//drupal_set_message(var_dump($achieved));
+
+	lable:
+
+	if($diet_data['diet_comments'] !== 'existing') 
+		$form['qty_6am']['#prefix'] = '<table class="table table-hover table-striped sticky-enabled tableheader-processed sticky-table"><thead><tr><th>Time</th><th>Food Item</th><th>Quantity</th> </tr></thead><tbody>'
+									. $form['qty_6am']['#prefix'];
+
+	 /* $form['rows_vals'] = array(
+		'#type' => 'hidden',
+		'#value' => serialize($rows),
+	);  */
+
+	global $base_url; 
+
+	//$default = (isset($form_state['values']['qty_6am'])) ? $form_state['values']['qty_6am'] : 'not yet saved';
+
+	$form['success_lable'] = array(
+		'#markup' => '<img src="' . $base_url . '/sites/default/files/alert_icon.png" width="20px" height="20px"/>Not yet saved',
+		'#prefix' => '<div id = "success_div" style="text-align:center;">',
+		'#suffix' => '</div>',
+	);
+
+	$form['print'] = array(
+		'#type' => 'image_button',
+		'#src' => $base_url . '/sites/default/files/print_icon.png',
+		'#attributes' => array('onclick' => 'window.print()', 'width' => '50px', 'height' => '50px'),
+		'#prefix' => '<div class="col-md-4 col-lg-4" style = "text-align: left;">',
+		'#suffix' => '</div>',
+	);
+	
+	 $form['save'] = array(
+		'#type' => 'image_button',
+		'#src' => $base_url . '/sites/default/files/save_icon.png',
+		'#attributes' => array('width' => '50px', 'height' => '50px'), //'onclick' => 'window.print()', 
+		'#ajax' => array(
+			'callback' => 'onChang_submit', 		//print_submit
+			'wrapper' => 'success_div',
+			'effect' => 'fade',
+			),
+		'#prefix' => '<div class="col-md-4 col-lg-4" style = "text-align: center;">',
+		'#suffix' => '</div>',
+	); 
+
+	$form['others'] = array(
+		'#type' => 'hidden',
+		'#value' => array('pid' => $diet_data['p_id'], 'weight' => $p_data['weight']),
+	);
+
+	$form['signature'] = array(
+		'#markup' => '<div class="col-md-4 col-lg-4" style="text-align: right; padding-top: 30px;" > Authorized Signature</div>',
+	);
+
+	/* $form['onChange'] = array(
+		'#type' => 'image_button',
+		'#src' => $base_url . '/sites/default/files/HTIC_icon_75.png',
+		'#attributes' => array('width' => '50px', 'height' => '50px'), 
+		'#ajax' => array(
+			'callback' => 'onChang_submit',
+			'wrapper' => 'success_div',
+			'effect' => 'fade',
+			),
+		'#prefix' => '<div class="col-md-12 col-lg-12" style = "text-align: center;">',
+		'#suffix' => '</div>',
+	); */
+
+	drupal_add_js(drupal_get_path('module', 'patient') . '/patient_js.js');
+	return $form;	
+}
+
+
+/*	Comparing two food_items using it's protein value	*/
+function my_cmp($a, $b) {
+  if ($a['protein'] == $b['protein']) {
+    return 0;
+  }
+  return ($a['protein'] < $b['protein']) ? 1 : -1;
+}
+
+/* function print_submit($form, &$form_state) {
+
+	$rows = $form['rows_vals']['#value'];
+	
+	$pid = $form['others']['#value']['pid'];
+
+	$weight = $form['others']['#value']['weight'];
+
+	again:
+	
+	if(!isset($_SESSION['visit_id'])) {
+
+		$v_id = db_insert('visit_details')
+					->fields(array(
+							'p_id' => $pid,
+							'visited' => REQUEST_TIME,
+							'weight' => $weight,
+							)
+					)->execute();
+		$_SESSION['visit_id'] = $v_id; 
+	}
+ 
+	$v_id = $_SESSION['visit_id'];
+
+	$count = db_query('SELECT v.p_id FROM {visit_details} v WHERE v.visit_id = ' . $v_id)->fetchField();			//$form_state['values']['others']['pid'] 
+
+//	$rows = $_SESSION['rows']; // $form_state['values']['rows_vals'];
+
+	if($count == $pid) {
+		$combination_id = db_insert('combination_of_foods')
+					->fields(array(
+							'visit_id' => $v_id,
+							'rows' => $rows,
+							)
+					)->execute();
+		
+		$form['success_lable']['#markup'] = t('Visit ID: ' . $v_id . ' Combination ID: ' . $combination_id);
+		return $form['success_lable'];
+	} 
+	else {
+		unset($_SESSION['visit_id']);
+		goto again;
+	} 
+} */
+
+function onChang_submit($form, &$form_state) {
+
+	$rows = array();
+
+	foreach($form_state['values'] as $key => $i) {
+		if(strpos($key, 'qty_') !== false) {
+			$rows[$key] = array( '#type' => $form[$key]['#type'], '#default_value' => (empty($i)?$form[$key]['#default_value']:$i), '#prefix' => $form[$key]['#prefix'], '#suffix' => $form[$key]['#suffix']);
+		}
+	}
+	 
+	$pid = $form['others']['#value']['pid'];
+
+	$weight = $form['others']['#value']['weight'];
+
+	again:
+	
+	if(!isset($_SESSION['visit_id'])) {
+
+		$v_id = db_insert('visit_details')
+					->fields(array(
+							'p_id' => $pid,
+							'visited' => REQUEST_TIME,
+							'weight' => $weight,
+							)
+					)->execute();
+		$_SESSION['visit_id'] = $v_id; 
+	}
+ 
+	$v_id = $_SESSION['visit_id'];
+
+	$count = db_query('SELECT v.p_id FROM {visit_details} v WHERE v.visit_id = ' . $v_id)->fetchField();	
+
+	if($count == $pid) {
+		$combination_id = db_insert('combination_of_foods')
+					->fields(array(
+							'visit_id' => $v_id,
+							'rows' => serialize($rows),
+							)
+					)->execute();
+		
+		$form['success_lable']['#markup'] = t('Visit ID: ' . $v_id . ' Combination ID: ' . $combination_id);
+		return $form['success_lable'];
+	} 
+	else {
+		unset($_SESSION['visit_id']);
+		goto again;
+	} 
+}
+
+/*function food_selection_form_submit($form, &$form_state) {
+
+	$pid = $form_state['values']['others']['pid'];
+
+	$weight = $form_state['values']['others']['weight'];
+
+	again:
+	
+	if(!isset($_SESSION['visit_id'])) {
+
+		$v_id = db_insert('visit_details')
+					->fields(array(
+							'p_id' => $form_state['values']['others']['pid'],
+							'visited' => REQUEST_TIME,
+							'weight' => $form_state['values']['others']['weight'],
+							)
+					)->execute();
+		$_SESSION['visit_id'] = $v_id; 
+	}
+ 
+	$v_id = $_SESSION['visit_id'];
+
+	$count = db_query('SELECT v.p_id FROM {visit_details} v WHERE v.visit_id = ' . $v_id)->fetchField();			//$form_state['values']['others']['pid'] 
+
+	$rows = $_SESSION['rows']; // $form_state['values']['rows_vals'];
+
+	if($count == $pid) {
+		$combination_id = db_insert('combination_of_foods')
+					->fields(array(
+							'visit_id' => $v_id,
+							'rows' => $rows,
+							)
+					)->execute();
+		
+		drupal_set_message('Visit ID: ' . $v_id . ' Combination ID: ' . $combination_id); 
+	} 
+	else {
+		unset($_SESSION['visit_id']);
+		goto again;
+	}  */
+
+	/* //variable_del('rem_food');
+	$i=$form_state['values']['food_group'];
+	if(!(in_array($i,explode(',',trim(variable_get('variable_in_group'),',')))) and !empty($i)){//to add the same group twice when accessed more than once
+		$t=variable_get('variable_in_group').$i.',';//if a group is changed for the current patient then this variable is created
+		variable_set('variable_in_group',$t);//used to keep track of all variable names created(since they are created dynamically)
+		//variable_set("rem_food$i",$form_state['values']['selected_val']);
+	}
+	
+	if(in_array($i,explode(',',trim(variable_get('variable_in_group'),','))) and empty($form_state['values']['selected_val'])){//if the selection made in a group is deselected we are deleting the variable name and removing that form variable in group string
+		$gf='';
+		$emp_group=explode(',',trim(variable_get('variable_in_group'),','));
+		unset($emp_group[array_search($i,$emp_group)]);
+		foreach($emp_group as $a){
+			$gf = $gf.$a.',';
+		}
+		variable_set('variable_in_group',$gf);
+		
+
+	}
+		variable_set("rem_food$i",$form_state['values']['selected_val']);
+	
+		
+		
+	drupal_set_message('Diet information has been successfully submitted.'); */
+
+//}
+
+function diet_suggest_form($form, &$form_state) {
+
+	if( !isset($_SESSION['pid']) ) {
+	  	
+	  	$form['access'] = array(
+	  		'#markup' => '<h3>Access Denied</h3>',
+	  	);
+
+	  	return $form;
+	}
+  	
+	global $user;
+
+	//SELECT n.title from node WHERE n.nid = (SELECT `field_hospital_name_nid` FROM `field_data_field_hospital_name` WHERE `entity_id`= 1)
+	$query = db_query('SELECT n.title FROM {node} n WHERE n.nid = (SELECT f.field_hospital_name_nid FROM {field_data_field_hospital_name} f WHERE f.entity_id = :uid)', array(':uid' => $user->uid));
+	
+	$opts = $query->fetchAssoc();
+
+	$form['hosp_name'] = array(
+		'#markup' => '<h2><center>' . $opts['title'] . '</center></h2>',
+	);
+	
+	$f_name = variable_get('patient_name');
+	$f_place = variable_get('patient_place');
+	$f_gender = variable_get('patient_gender');
+	$f_sex = ($f_gender == 0) ? 'M' : 'F';
+	$f_weight = variable_get('patient_weight');
+	$f_height = variable_get('patient_height');
+	$f_bp = variable_get('patient_bp');
+	$f_pid = $_SESSION['pid']; //variable_get('patient_id');
+	$f_mrd = variable_get('patient_mrd');
+	$f_food_preference = (variable_get('food_preference')==0)? 'Veg' : 'Non-Veg';
+
+	$f_bmi = round($f_weight * 10000 / ($f_height * $f_height));
+
+	switch($f_bmi) {
+		case $f_bmi<18.5:
+			$f_nature="Underweight";
+			break;
+		case $f_bmi<24.9:
+			$f_nature="Normal";
+			break;
+		case $f_bmi<29.9:
+			$f_nature="Overweight";
+			break;
+		case $f_bmi>30:
+			$f_nature="Obese";
+			break;
+	}
+
+	$f_feeding_type = variable_get('patient_feeding_type');
+	$disease = "";
+	$allergn = "";
+	$diseaseid = explode(',', variable_get('patient_diseases'));
+
+	$avoid_desc_query = db_query('SELECT field_desc_avoid_foods_value FROM {field_data_field_desc_avoid_foods} WHERE entity_id IN (:nids)', array(':nids' => $diseaseid))->fetchCol();
+
+	$incl_desc_query = db_query('SELECT field_desc_include_foods_value FROM {field_data_field_desc_include_foods} WHERE entity_id IN (:nids)', array(':nids' => $diseaseid))->fetchCol();
+
+	$moderate_desc_query = db_query('SELECT field_desc_moderate_foods_value FROM {field_data_field_desc_moderate_foods} WHERE entity_id IN (:nids)', array(':nids' => $diseaseid))->fetchCol();
+
+	$disease_incl_desc = implode(", ", $incl_desc_query);
+	//print_r($avoid_desc_query);
+	$disease_avoid_desc = implode(", ", $avoid_desc_query);
+
+	$disease_moderate_desc = implode(", ", $moderate_desc_query);
+
+	foreach($diseaseid as $i){
+		$output[] = db_query('SELECT title FROM {node} WHERE nid = :type', array(':type' => $i))->fetchField();
+	}
+	
+	
+	foreach($output as $i){
+		$disease = $disease . "," . $i;
+	}
+		
+	
+	
+	$f_diseases = trim($disease,",");
+	
+	$allergnid = explode(',', variable_get('patient_allergns'));
+	foreach($allergnid as $i){
+		$allergn_output[] = db_query('SELECT title FROM {node} WHERE nid = :type', array(':type' => $i))->fetchField();
+	}
+	
+	
+	foreach($allergn_output as $i) {
+		$allergn = $allergn . "," . $i;
+	}
+	
+
+	$f_allergens = trim($allergn,",");
+	$f_kcal=round(variable_get('patient_energy'));
+	$f_fat=round(variable_get('patient_fat')*$f_kcal/900);
+	$f_protein=round(variable_get('patient_pro')*$f_kcal/400);
+	$f_cho=round(variable_get('patient_cho')*$f_kcal/400);
+	$totalenergy=0;
+	$totalcho=0;
+	$totalprotein=0;
+	$totalfat=0;
+	
+	if($f_feeding_type == 'Normal'){
+		
+		$non_veg = (variable_get('patient_food_veg') == 1 and variable_get('patient_food_egg') == 0 ) ? 0 : 1;	//in the food_items nonveg is given 1
+		$patient_food_pref = $non_veg.variable_get('patient_food_egg').variable_get('patient_food_coconut');	//food preference of the patient nonveg.egg.coconut
+		
+		$quan_ref=array('ml'=>100,'g' => 100,'cup' =>1, 'num' =>1);//quantity reference
+		$group_chang=trim(variable_get('variable_in_group'),',');//trim for comma
+		$variable_in_group = explode(',',$group_chang); // get all the nid of deleted items in an array
+		$seven_diet = array();//for normal diet there are nine meals will contain all the details of the seven foods
+		
+		
+		/*for 6:00 AM*/
+		//variable in group should not have group coffee tea and milk so get the nid
+		
+		
+		$query=db_select('node','n');
+				 $query->fields('n', array('nid'));
+				 $query->condition('n.type','allergen','=');
+				 $query->condition('n.title','Milk','=');
+				 $milk_allergen= $query->execute()->fetch();
+				 
+		$query=db_select('node','n');
+				 $query->fields('n', array('nid'));
+				 $query->condition('n.type','allergen','=');
+				 $query->condition('n.title','Egg','=');
+				 $egg_allergen= $query->execute()->fetch();
+				 
+		$allergens = explode(',',trim(variable_get('patient_allergns',',')));
+		$include_foods=array();
+		
+		
+		if(!(in_array($milk_allergen->nid,$allergens))) {	//find if the patient is allergic to milk		
+	
+			$query=db_select('node','n');
+					$query->fields('n', array('nid'));
+					$query->condition('n.type','food_group','=');
+					$query->condition('n.title','milk','=');
+					$milk_food_group= $query->execute()->fetch();
+				 
+		
+			$query=db_select('node','n');
+					$query->fields('n', array('nid'));
+					$query->condition('n.type','food_group','=');
+					$query->condition('n.title','tea','=');
+					$tea_food_group = $query->execute()->fetch();
+				 
+		
+			$query=db_select('node','n');
+					$query->fields('n', array('nid'));
+					$query->condition('n.type','food_group','=');
+					$query->condition('n.title','coffee','=');
+					$coffee_food_group= $query->execute()->fetch();
+		
+			if(count($variable_in_group)>1){
+				
+				if(in_array($tea_food_group->nid,$variable_in_group)){
+					$include_foods[] = $tea_food_group->nid;
+				}
+		
+				if(in_array($coffee_food_group->nid,$variable_in_group)){
+					$include_foods[] = $coffee_food_group->nid;
+				}
+			
+				if(in_array($milk_food_group->nid,$variable_in_group)){
+					$include_foods[] = $milk_food_group->nid;			
+				}
+			}
+			else{
+				
+				$include_foods[] = $tea_food_group->nid;
+				
+				$include_foods[] = $coffee_food_group->nid;
+				
+				$include_foods[] = $milk_food_group->nid;			
+				
+				
+			}
+		}
+		
+		$query=db_select('node','n');
+				 $query->fields('n', array('nid'));
+				 $query->condition('n.title','juice','=');
+				 $food_juice = $query->execute()->fetchfield();
+				 
+		$query=db_select('node','n');
+				 $query->fields('n', array('nid'));
+				 $query->condition('n.title','egg','=');
+				 $food_egg = $query->execute()->fetchfield(); 
+				 
+			 
+		if((in_array($egg_allergen->nid,$allergens))) {
+			$food_groups = array($food_juice,$food_egg);
+		}
+		else {
+			$food_groups = array($food_juice);
+		}
+			
+			
+			$food_list = array();
+			foreach ($food_groups as $food){
+				
+				$query = db_select('field_data_field_group','n');
+					$query->fields('n', array('entity_id'));
+					$query->condition('n.field_group_nid',$food,'=');
+					$query_one = $query->execute()->fetchAll();
+					
+					
+					foreach ($query_one as $n){
+							$node_id =$n->entity_id;
+						$temp=array();
+			
+						$query=db_select('node','n');
+						$query->fields('n', array('title'));
+						$query->condition('n.nid',$node_id,'=');
+						$food_name= $query->execute()->fetchField();
+
+						$query=db_select('field_data_field_malyalam','n');
+						$query->fields('n', array('field_malyalam_value'));
+						$query->condition('n.entity_id',$node_id,'=');
+						$malyalam= $query->execute()->fetchField();
+					
+										
+						$query=db_select('field_data_field_energy_kcal_','n');
+						$query->fields('n', array('field_energy_kcal__value'));
+						$query->condition('n.entity_id',$node_id,'=');
+						$query_two= $query->execute()->fetchField();
+					
+						$query=db_select('field_data_field_cho','n');
+						$query->fields('n', array('field_cho_value'));
+						$query->condition('n.entity_id',$node_id,'=');
+						$query_three= $query->execute()->fetchField();
+					
+						$query=db_select('field_data_field_protein','n');
+						$query->fields('n', array('field_protein_value'));
+						$query->condition('n.entity_id',$node_id,'=');
+						$query_four= $query->execute()->fetchField();
+					
+						$query=db_select('field_data_field_fat','n');
+						$query->fields('n', array('field_fat_value'));
+						$query->condition('n.entity_id',$node_id,'=');
+						$query_five= $query->execute()->fetchField();
+					
+						$query=db_select('field_data_field_measure_unit','n');
+						$query->fields('n', array('field_measure_unit_nid'));
+						$query->condition('n.entity_id',$node_id,'=');
+						$query_six= $query->execute()->fetchField();
+					
+						$query=db_select('node','n');
+						$query->fields('n', array('title'));
+						$query->condition('n.nid',$query_six,'=');
+						$meas_unit= $query->execute()->fetchField();
+					
+					
+					
+					
+						$temp=array('food_name'=>$food_name,'unit'=>$meas_unit,'malyalam'=>$malyalam,'kcal'=>$query_two,'cho'=>$query_three,'protein'=>$query_four,'fat'=>$query_five);
+					
+						$food_list[]=$temp;	//has all the mixes
+					}
+			}
+		if(count($include_foods) == 0 or (in_array($milk_allergen->nid,$allergens)) ) {	//if they can't take tea suggest juice or egg energy<80
+			
+			$temp=rand()%count($food_list);
+			$mea=0;
+			while($mea<count($food_list)){
+				if($food_list[$temp]['kcal'] < 80){
+					$seven_diet[] = array('value'=>5,'time'=>'04:00 PM','food_name'=>$food_list[$temp]['food_name'],'malyalam'=>$food_list[$temp]['malyalam'],'quantity'=>$quan_ref[$food_list[$temp]['unit']],'unit'=>$food_list[$temp]['unit'],'kcal'=>$food_list[$temp]['kcal'],'cho'=>$food_list[$temp]['cho'],'protein'=>$food_list[$temp]['protein'],'fat'=>$food_list[$temp]['fat']);
+					
+					break;
+				}
+				$mea=$mea+1;
+				
+				$temp=$temp+1%count($food_list);
+				
+			}
+			
+			$temp=rand()%count($food_list);
+			$mea=0;
+			while($mea<count($food_list)){
+				if($food_list[$temp]['kcal'] < 80){
+					$seven_diet[] = array('value'=>1,'time'=>'06:00 AM','food_name'=>$food_list[$temp]['food_name'],'malyalam'=>$food_list[$temp]['malyalam'],'quantity'=>$quan_ref[$food_list[$temp]['unit']],'unit'=>$food_list[$temp]['unit'],'kcal'=>$food_list[$temp]['kcal'],'cho'=>$food_list[$temp]['cho'],'protein'=>$food_list[$temp]['protein'],'fat'=>$food_list[$temp]['fat']);
+					break;
+				}
+				$mea=$mea+1;
+				
+				$temp=$temp+1%count($food_list);
+				
+			}
+				
+			 
+		}
+		
+		else {
+			
+			$node_id = db_query('SELECT entity_id FROM {field_data_field_group} WHERE field_group_nid = :type', array(':type' => $include_foods[0]))->fetchField();
+			
+					$query=db_select('node','n');
+					$query->fields('n', array('title'));
+					$query->condition('n.nid',$node_id,'=');
+					$food_name= $query->execute()->fetchField();
+
+					$query=db_select('field_data_field_malyalam','n');
+					$query->fields('n', array('field_malyalam_value'));
+					$query->condition('n.entity_id',$node_id,'=');
+					$malyalam= $query->execute()->fetchField();
+					
+										
+					$query=db_select('field_data_field_energy_kcal_','n');
+					$query->fields('n', array('field_energy_kcal__value'));
+					$query->condition('n.entity_id',$node_id,'=');
+					$query_two= $query->execute()->fetchField();
+					
+					$query=db_select('field_data_field_cho','n');
+					$query->fields('n', array('field_cho_value'));
+					$query->condition('n.entity_id',$node_id,'=');
+					$query_three= $query->execute()->fetchField();
+					
+					$query=db_select('field_data_field_protein','n');
+					$query->fields('n', array('field_protein_value'));
+					$query->condition('n.entity_id',$node_id,'=');
+					$query_four= $query->execute()->fetchField();
+					
+					$query=db_select('field_data_field_fat','n');
+					$query->fields('n', array('field_fat_value'));
+					$query->condition('n.entity_id',$node_id,'=');
+					$query_five= $query->execute()->fetchField();
+					
+					$query=db_select('field_data_field_measure_unit','n');
+					$query->fields('n', array('field_measure_unit_nid'));
+					$query->condition('n.entity_id',$node_id,'=');
+					$query_six= $query->execute()->fetchField();
+					
+					$query=db_select('node','n');
+					$query->fields('n', array('title'));
+					$query->condition('n.nid',$query_six,'=');
+					$meas_unit= $query->execute()->fetchField();
+					
+			$seven_diet[] = array('value'=>1,'time'=>'06:00 AM','food_name'=>$food_name,'malyalam'=>$malyalam,'quantity'=>1,'unit'=>$meas_unit,'kcal'=>$query_two,'cho'=>$query_three,'protein'=>$query_four,'fat'=>$query_five);
+			
+			/*for 4:00 PM*/
+			
+			$seven_diet[] = array('value'=>5,'time'=>'04:00 PM','food_name'=>$food_name,'malyalam'=>$malyalam,'quantity'=>1,'unit'=>$meas_unit,'kcal'=>$query_two,'cho'=>$query_three,'protein'=>$query_four,'fat'=>$query_five);
+		}
+		//10 am juice
+		
+		
+		$temp = rand() % count($food_list);
+			$mea=0;
+			while($mea<count($food_list)){
+				if($food_list[$temp]['kcal'] < 80){
+					$seven_diet[] = array('value'=>3,'time'=>'10:00 AM','food_name'=>$food_list[$temp]['food_name'],'malyalam'=>$food_list[$temp]['malyalam'],'quantity'=>$quan_ref[$food_list[$temp]['unit']],'unit'=>$food_list[$temp]['unit'],'kcal'=>$food_list[$temp]['kcal'],'cho'=>$food_list[$temp]['cho'],'protein'=>$food_list[$temp]['protein'],'fat'=>$food_list[$temp]['fat']);
+					break;
+				}
+
+				$mea = $mea + 1;
+				
+				$temp = $temp + 1 % count($food_list);
+				
+			}
+		
+		/*for 8:00 AM*//*for 12:30 PM*//*for 8:00 PM*/
+		/* $f_kcal
+		$f_fat
+		$f_protein
+		$f_cho */
+		//servings(1,2) tiffin; num(1,2,3,4) for tiffin ;cup(1,1.5,2) for curry and rice to loop over
+		
+		
+		
+		
+		
+		$break_fast_group_nid = db_query('SELECT nid FROM {node} WHERE title = :type', array(':type' => 'tiffin'))->fetchField();//tiffin group nid
+		$rice_group_nid = db_query('SELECT nid FROM {node} WHERE title = :type', array(':type' => 'rice'))->fetchField();//rice group nid
+		$curry_group_nid = db_query('SELECT nid FROM {node} WHERE title = :type', array(':type' => 'curry'))->fetchField();//curry group nid
+		$normal_allergen = explode(',', trim(variable_get('patient_allergns'),','));//allergens in an array for normal food type
+				 
+		 /****** to remove allergens form food ids **********/
+		$query = db_query('SELECT entity_id FROM {field_data_field_group} WHERE field_group_nid = :type AND entity_id NOT IN (SELECT entity_id FROM {field_data_field_allergen} WHERE field_allergen_nid  IN (:allergen)) ',array(':type' => $break_fast_group_nid , ':allergen' => $normal_allergen ));
+		
+		foreach($query ->fetchAll()as $food){
+			
+			$group_break_fast[]=$food->entity_id;// an array with allergens removed
+		}
+		 
+		$query = db_query('SELECT entity_id FROM {field_data_field_group} WHERE field_group_nid = :type AND entity_id NOT IN (SELECT entity_id FROM {field_data_field_allergen} WHERE field_allergen_nid  IN (:allergen)) ',array(':type' => $curry_group_nid , ':allergen' => $normal_allergen ));
+
+		foreach($query ->fetchAll()as $food){
+			
+			$group_curry[]=$food->entity_id;// an array with allergens removed
+		}
+		
+		
+		/*******food pref considered*******/
+		
+		$query=db_query('SELECT field_nveg_egg_coconut_value , entity_id FROM {field_data_field_nveg_egg_coconut} WHERE entity_id IN (:type)',array(':type' => $group_curry));
+		$temp_curry = array();
+		
+		foreach($query ->fetchAll()as $food){
+			
+			$temp_curry[]=array('nid'=>$food->entity_id,'pref'=>$food->field_nveg_egg_coconut_value);
+		}
+		foreach($temp_curry as $tc){
+			if(substr($tc['pref'],-1) == substr($patient_food_pref,-1)){//food has coconut or not
+				if(substr($patient_food_pref,0,2) == 10){
+					$group_curry_pref[]=$tc['nid'];						
+				}
+				if(substr($patient_food_pref,0,2) == 11 and substr($tc['pref'],0,2)!= 10){
+					$group_curry_pref[]=$tc['nid'];
+				}
+				
+				if(substr($patient_food_pref,0,2) == 00 and substr($tc['pref'],0,1)== 0){
+					$group_curry_pref[]=$tc['nid'];
+				}
+				
+				
+			}
+		}
+		
+
+		
+		/**********if the food groups are selected in food_selection page to alter the dleted food items**********/
+		$exclude_curry_foods = explode(',',trim(variable_get("rem_food$curry_group_nid"),','));
+		$exclude_break_fast_foods = explode(',',trim(variable_get("rem_food$break_fast_group_nid"),','));
+		
+		$rice_food_nid = db_query('SELECT entity_id FROM {field_data_field_group} WHERE field_group_nid = :type', array(':type' => $rice_group_nid))->fetchField();//rice has no allergen
+		
+		$curry_food_nid = (in_array($curry_group_nid,$variable_in_group)) ? array_diff($group_curry_pref,$exclude_curry_foods) : $group_curry_pref;
+		$break_fast_food_nid = (in_array($break_fast_group_nid,$variable_in_group)) ? array_diff($group_break_fast,$exclude_break_fast_foods) : $group_break_fast;
+		
+		
+		if(in_array($rice_group_nid,$variable_in_group)){
+			
+			//$rice_food_nid = $break_fast_food_nid;//if the patient doesn't want to eat rice
+		}
+		//gets details from db
+		
+		$query=db_select('node','n');
+		$query->fields('n', array('title'));
+		$query->fields('n', array('nid'));
+		$query_temp=$query->execute()->fetchAll();
+		
+		foreach($query_temp as $x){
+			
+			$normal_food_name[$x->nid]=$x->title;
+		}
+
+		$query=db_select('field_data_field_malyalam','n');
+		$query->fields('n', array('field_malyalam_value'));
+		$query->fields('n', array('entity_id'));
+		$query_temp= $query->execute()->fetchAll();
+		
+		foreach($query_temp as $x){
+			
+			$normal_malyalam[$x->entity_id]=$x->field_malyalam_value;
+		}
+					
+										
+		$query=db_select('field_data_field_energy_kcal_','n');
+		$query->fields('n', array('field_energy_kcal__value'));
+		$query->fields('n', array('entity_id'));
+		$query_temp = $query->execute()->fetchAll();
+		
+		foreach($query_temp as $x){
+			
+			$normal_query_two[$x->entity_id]=$x->field_energy_kcal__value;
+		}
+					
+		$query=db_select('field_data_field_cho','n');
+		$query->fields('n', array('field_cho_value'));
+		$query->fields('n', array('entity_id'));
+		$query_temp = $query->execute()->fetchAll();
+		
+		foreach($query_temp as $x){
+			
+			$normal_query_three[$x->entity_id]=$x->field_cho_value;
+		}
+					
+		$query=db_select('field_data_field_protein','n');
+		$query->fields('n', array('field_protein_value'));
+		$query->fields('n', array('entity_id'));
+		$query_temp= $query->execute()->fetchAll();
+		
+		foreach($query_temp as $x){
+			
+			 $normal_query_four[$x->entity_id]=$x->field_protein_value;
+		}
+					
+		$query=db_select('field_data_field_fat','n');
+		$query->fields('n', array('field_fat_value'));
+		$query->fields('n', array('entity_id'));
+		$query_temp = $query->execute()->fetchAll();
+		
+		foreach($query_temp as $x){
+			
+			$normal_query_five[$x->entity_id]=$x->field_fat_value;
+		}
+					
+		$query=db_select('field_data_field_measure_unit','n');
+		$query->fields('n', array('field_measure_unit_nid'));
+		$query->fields('n', array('entity_id'));
+		$query_temp = $query->execute()->fetchAll();
+		
+		foreach($query_temp as $x){
+			
+			$normal_query_six[$x->entity_id]=$x->field_measure_unit_nid;
+		}
+					
+		$query=db_select('node','n');
+		$query->fields('n', array('title'));
+		$query->fields('n', array('nid'));
+	    $query->condition('n.type','unit','=');		
+		$query_temp = $query->execute()->fetchAll();
+		
+		foreach($query_temp as $x){
+			
+			$normal_meas_unit[$x->nid]=$x->title;
+		}
+		
+		
+		// 4 pm biscuits
+		if(!(in_array($milk_allergen->nid,$allergens))){
+			
+		$biscuit_group_nid = db_query('SELECT nid FROM {node} WHERE title = :type', array(':type' => 'biscuit'))->fetchField();		
+		
+		$query = db_query('SELECT entity_id FROM {field_data_field_group} WHERE field_group_nid = :type ',array(':type' => $biscuit_group_nid ));
+
+		foreach($query ->fetchAll()as $food){			
+			$group_biscuit[]=$food->entity_id;// an array with allergens removed
+		}
+		
+		$biscuit_temp = rand()%count($group_biscuit);
+		$biscuit_count= 0;
+		while($biscuit_count< count($group_biscuit)){		
+		if($normal_query_two[$group_biscuit[$biscuit_temp]]/4 <150){
+			
+			$seven_diet[] = array('value'=>5,'time'=>'04:00 PM','food_name'=>$normal_food_name[$group_biscuit[$biscuit_temp]],'malyalam'=>$normal_malyalam [$group_biscuit[$biscuit_temp]],'quantity'=>'25','unit'=>'g 
+			(two biscuits)','kcal'=>0.25*$normal_query_two[$group_biscuit[$biscuit_temp]],'cho'=>0.25*$normal_query_three[$group_biscuit[$biscuit_temp]],'protein'=>0.25*$normal_query_four[$group_biscuit[$biscuit_temp]],'fat'=>0.25*$normal_query_five[$group_biscuit[$biscuit_temp]]);
+			break;
+		}
+		$biscuit_temp = ($biscuit_temp+1)%count($group_biscuit);
+		$biscuit_count= $biscuit_count+1;
+		}
+		
+		}
+		
+		
+		//get the details of each food into an array
+		foreach ($curry_food_nid as $key => $i){
+			$curry[]= array('food_name'=> $normal_food_name[$i] ,'unit'=> $normal_meas_unit[$normal_query_six[$i]],'malyalam'=> $normal_malyalam[$i],'kcal'=> $normal_query_two[$i],'cho'=> $normal_query_three[$i],'protein'=> $normal_query_four[$i] ,'fat'=> $normal_query_five[$i]);
+		}
+		foreach($break_fast_food_nid as $key => $i){
+			
+			$break_fast[]= array('food_name'=> $normal_food_name[$i],'unit'=> $normal_meas_unit[$normal_query_six[$i]],'malyalam'=> $normal_malyalam[$i],'kcal'=> $normal_query_two[$i],'cho'=> $normal_query_three[$i] ,'protein'=>$normal_query_four[$i] ,'fat'=> $normal_query_five[$i]);
+			
+		}
+		 $i = $rice_food_nid; // rice has a single item
+		//print_r($rice_food_nid);
+		$rice[]= array('food_name'=> $normal_food_name[$i],'unit'=> $normal_meas_unit[$normal_query_six[$i]],'malyalam'=> $normal_malyalam[$i],'kcal'=> $normal_query_two[$i],'cho'=> $normal_query_three[$i],'protein'=>$normal_query_four[$i] ,'fat'=> $normal_query_five[$i]);
+		
+		$sort_temp = array();
+				foreach ($break_fast as $key => $row)
+				{
+					$sort_temp[$key] = $row['fat'];
+				}
+		array_multisort($sort_temp, SORT_DESC, $break_fast);
+		
+		
+		$sort_temp = array();
+				foreach ($curry as $key => $row)
+				{
+					$sort_temp[$key] = $row['fat'];
+				}
+		array_multisort($sort_temp, SORT_ASC, $curry);
+		
+		
+		if($f_cho>400){
+			$normal_quantity= array('bf_quan'=> array(2,3,4,5),	'rice_quan'=> array(0.8,1,1.2), 'curry_quan'=> array(2,2.5,1.5,3));
+			
+		}
+		else{
+			$normal_quantity= array('bf_quan'=> array(2,3,4),	'rice_quan'=> array(0.8,1), 'curry_quan'=> array(2,2.5,1.5));
+		}
+		
+		
+		$count=0;
+		 foreach($break_fast as $bf) {
+			foreach($normal_quantity['bf_quan'] as $q1) {
+				foreach($normal_quantity['rice_quan']as $q2) {
+					foreach($curry as $acu){
+						foreach($normal_quantity['curry_quan'] as $q3) {
+							foreach($normal_quantity['rice_quan'] as $q4) {
+								foreach($curry as $ncu){
+									foreach($normal_quantity['curry_quan'] as $q5) {
+										$energy_tot= $bf['kcal']*$q1 +$rice[0]['kcal']*$q2 + $rice[0]['kcal']*$q4 + $acu['kcal']*$q3 +$ncu['kcal']*$q5;
+										$cho_tot= $bf['cho']*$q1 +$rice[0]['cho']*$q2 + $rice[0]['cho']*$q4 + $acu['cho']*$q3 +$ncu['cho']*$q5;
+										$fat_tot= $bf['fat']*$q1 +$rice[0]['fat']*$q2 + $rice[0]['fat']*$q4 + $acu['fat']*$q3 +$ncu['fat']*$q5;
+										$pro_tot= $bf['protein']*$q1 +$rice[0]['protein']*$q2 + $rice[0]['protein']*$q4 + $acu['protein']*$q3 +$ncu['protein']*$q5;
+										if(0.75*$f_cho<$cho_tot and 0.85*$f_cho>$cho_tot and $f_protein*0.5<$pro_tot and $f_protein*0.8>$pro_tot   and $f_fat*0.6<$fat_tot and 0.8*$f_fat> $fat_tot and 0.72*$f_kcal<$energy_tot){
+													
+											$seven_diet[]=array('value'=>2,'time'=>'08:00 AM','food_name'=>$bf['food_name'],'malyalam'=>$bf['malyalam'],'quantity'=>$q1,'unit'=>$bf['unit'],'kcal'=>$bf['kcal']*$q1,'cho'=>$bf['cho']*$q1,'protein'=>$bf['protein']*$q1,'fat'=>$bf['fat']*$q1);
+											
+											if($rice[0]['kcal']*$q2 <= $rice[0]['kcal']*$q4){
+												
+												$seven_diet[]=array('value'=>6,'time'=>'08:00 PM','food_name'=>$rice[0]['food_name'],'malyalam'=>$rice[0]['malyalam'],'quantity'=>$q2*250,'unit'=>'g','kcal'=>$rice[0]['kcal']*$q2,'cho'=>$rice[0]['cho']*$q2,'protein'=>$rice[0]['protein']*$q2,'fat'=>$rice[0]['fat']*$q2);
+												
+												$seven_diet[]=array('value'=>4,'time'=>'12:30 PM','food_name'=>$rice[0]['food_name'],'malyalam'=>$rice[0]['malyalam'],'quantity'=>$q4*250,'unit'=>'g','kcal'=>$rice[0]['kcal']*$q4,'cho'=>$rice[0]['cho']*$q4,'protein'=>$rice[0]['protein']*$q4,'fat'=>$rice[0]['fat']*$q4);
+											}
+											else if($rice[0]['kcal']*$q2 >= $rice[0]['kcal']*$q4){
+												
+												$seven_diet[]=array('value'=>6,'time'=>'08:00 PM','food_name'=>$rice[0]['food_name'],'malyalam'=>$rice[0]['malyalam'],'quantity'=>$q4*250,'unit'=>'g','kcal'=>$rice[0]['kcal']*$q4,'cho'=>$rice[0]['cho']*$q4,'protein'=>$rice[0]['protein']*$q4,'fat'=>$rice[0]['fat']*$q4);
+												
+												$seven_diet[]=array('value'=>4,'time'=>'12:30 PM','food_name'=>$rice[0]['food_name'],'malyalam'=>$rice[0]['malyalam'],'quantity'=>$q2*250,'unit'=>'g','kcal'=>$rice[0]['kcal']*$q2,'cho'=>$rice[0]['cho']*$q2,'protein'=>$rice[0]['protein']*$q2,'fat'=>$rice[0]['fat']*$q2);
+											}
+											if ($acu['kcal']*$q3 <=$ncu['kcal']*$q5){
+												
+												$seven_diet[]=array('value'=>6,'time'=>'08:00 PM','food_name'=>$acu['food_name'],'malyalam'=>$acu['malyalam'],'quantity'=>$q3*100,'unit'=>'g','kcal'=>$acu['kcal']*$q3,'cho'=>$acu['cho']*$q3,'protein'=>$acu['protein']*$q3,'fat'=>$acu['fat']*$q3);
+												
+												$seven_diet[]=array('value'=>4,'time'=>'12:30 PM','food_name'=>$ncu['food_name'],'malyalam'=>$ncu['malyalam'],'quantity'=>$q5*100,'unit'=>'g','kcal'=>$ncu['kcal']*$q5,'cho'=>$ncu['cho']*$q5,'protein'=>$ncu['protein']*$q5,'fat'=>$ncu['fat']*$q5);
+											}
+											else if($acu['kcal']*$q3 >=$ncu['kcal']*$q5){
+												
+												$seven_diet[]=array('value'=>6,'time'=>'08:00 PM','food_name'=>$ncu['food_name'],'malyalam'=>$ncu['malyalam'],'quantity'=>$q5*100,'unit'=>'g','kcal'=>$ncu['kcal']*$q5,'cho'=>$ncu['cho']*$q5,'protein'=>$ncu['protein']*$q5,'fat'=>$ncu['fat']*$q5);
+												
+												$seven_diet[]=array('value'=>4,'time'=>'12:30 PM','food_name'=>$acu['food_name'],'malyalam'=>$acu['malyalam'],'quantity'=>$q3*100,'unit'=>'g','kcal'=>$acu['kcal']*$q3,'cho'=>$acu['cho']*$q3,'protein'=>$acu['protein']*$q3,'fat'=>$acu['fat']*$q3);
+											}
+											break 8;
+										}
+										
+							
+									}
+								}
+							}
+						}
+					}
+				}
+				
+			}
+		} 
+				 
+		/*for 10:00 AM*//*for 4:00 PM*//*for 10:00 PM*/
+		$energy_tot=0;
+		$cho_tot=0;
+		$pro_tot=0;
+		$fat_tot=0;
+		
+		for($k=0; $k<count($seven_diet); $k++){
+			$energy_tot = $energy_tot + $seven_diet[$k]['kcal'] ;
+			$cho_tot = $cho_tot + $seven_diet[$k]['cho'];
+			$pro_tot = $pro_tot + $seven_diet[$k]['protein'];
+			$fat_tot = $fat_tot + $seven_diet[$k]['fat'] ;
+		}
+		
+		
+		//10 pm and 10 am
+		$energy_diff = $f_kcal - $energy_tot;
+		$cho_diff = $f_cho - $cho_tot;
+		$protein_diff = $f_protein - $pro_tot;
+		$fat_diff = $f_fat - $fat_tot;
+		//pick milk, juice, egg , protein
+		$milk_group_nid = db_query('SELECT nid FROM {node} WHERE title = :type and type = :place', array(':type' => 'milk',':place' =>'food_group'))->fetchField();
+		$juice_group_nid = db_query('SELECT nid FROM {node} WHERE title = :type', array(':type' => 'juice'))->fetchField();
+		$egg_group_nid = db_query('SELECT nid FROM {node} WHERE title = :type and type = :place', array(':type' => 'egg',':place' =>'food_group'))->fetchField();
+		$pro_group_nid = db_query('SELECT nid FROM {node} WHERE title = :type', array(':type' => 'protein'))->fetchField();
+		
+		$group_milk= db_query('SELECT entity_id FROM {field_data_field_group} WHERE field_group_nid = :type ',array(':type' => $milk_group_nid ))->fetchField();	
+
+		$query = db_query('SELECT entity_id FROM {field_data_field_group} WHERE field_group_nid = :type ',array(':type' => $juice_group_nid ));
+
+		foreach($query ->fetchAll()as $food){
+			
+			$group_juice[]=$food->entity_id;
+		}
+		$group_egg = db_query('SELECT entity_id FROM {field_data_field_group} WHERE field_group_nid = :type ',array(':type' => $egg_group_nid ))->fetchField();
+		
+		$query = db_query('SELECT entity_id FROM {field_data_field_group} WHERE field_group_nid = :type ',array(':type' => $pro_group_nid ));
+
+		foreach($query ->fetchAll()as $food){
+			
+			$group_protein[]=$food->entity_id;
+		}
+		
+		$milk_quan = array(1,1.5,2,2,5);
+		$juice_quan = array(1);
+		$egg_quan = array(1,2);
+		$pro_quan = array(2,1);
+		
+		if($pro_tot*100/$f_protein<70){//if more pro req then only protein is chosen else egg/juice/milk
+			foreach($group_protein as $gp){
+				foreach($pro_quan as $q1){
+					$energy_diff = $energy_diff - $normal_query_two[$gp]*$q1;
+					$cho_diff = $cho_diff - $normal_query_three[$gp]*$q1;
+					$protein_diff = $protein_diff - $normal_query_four[$gp]*$q1;
+					$fat_diff = $fat_diff - $normal_query_five[$gp]*$q1;
+					if(abs($cho_diff)<20 and abs($protein_diff) <20  and abs($fat_diff)<20 and abs($energy_diff) < 150){
+						$seven_diet[] = array('value'=>7,'time'=>'10:00 PM','food_name'=> $normal_food_name[$gp],'unit'=> $normal_meas_unit[$normal_query_six[$gp]],'quantity'=>$q1,'malyalam'=> $normal_malyalam[$gp],'kcal'=> $normal_query_two[$gp]*$q1,'cho'=> $normal_query_three[$gp]*$q1,'protein'=>$normal_query_four[$gp]*$q1 ,'fat'=> $normal_query_five[$gp]*$q1);
+						break 2;
+					}
+				}
+				
+			}
+		}
+		
+	}
+	
+	if($f_feeding_type == 'NGT'  || $f_feeding_type == 'Enteral' ) {
+		$nine_diet = variable_get('nine_diet');
+		foreach($nine_diet as $m){
+			$totalenergy=$totalenergy+$m['kcal'];
+			$totalcho=$totalcho+$m['cho'];
+			$totalprotein=$totalprotein+$m['protein'];
+			$totalfat=$totalfat+$m['fat'];
+		}
+	}
+
+	
+	$form['details'] = array(
+	'#markup' => '
+		<h> <b>Patient Details </b> </h>
+		<br>
+		<table style="width: 100%" border="0px">
+				<tr>
+					<th style="background-color: #A9A9A9;">Patient ID </th><td style="background-color: #A9A9A9;">'. $f_pid .'</td>	<th style="background-color: #DCDCDC;">MRD No</th><td style="background-color: #DCDCDC;">'. $f_mrd .'</td>
+					<th style="background-color: #A9A9A9;">Food Preference</th><td style="background-color: #A9A9A9;">'. $f_food_preference .'</td>
+					
+				</tr>
+				<tr>
+					<th style="background-color: #DCDCDC;" >Patient Name/Sex </th>	<td style="background-color: #DCDCDC;">'.$f_name.' / '.$f_sex.'</td>
+					<th style="background-color: #A9A9A9;">Place </th>	<td style="background-color: #A9A9A9;">'.$f_place.'</td>
+					<th style="background-color: #DCDCDC;">BP </th>	<td style="background-color: #DCDCDC;">'.$f_bp.' mmHg</td>
+				</tr>
+				<tr>
+					<th style="background-color: #A9A9A9;" >BMI </th>	<td style="background-color: #A9A9A9;" >'.$f_bmi.'-'.$f_nature.'</td>
+					<th style="background-color: #DCDCDC;" >Height </th>	<td style="background-color: #DCDCDC;" >'.$f_height.' cm</td>
+					<th style="background-color: #A9A9A9;" >Weight </th>	<td style="background-color: #A9A9A9;" >'.$f_weight.' kg</td>
+				</tr>
+		</table>
+	<br><br>',
+	);
+
+	/*
+	diseases and allergens in another table food habits
+	food list*/
+	$form['disease_details'] = array(
+	'#markup' => '
+	<style>
+	th, td {
+    padding: 5px;
+	}
+	</style>
+		<table style="width:100%;" border=1px>
+				<tr><th>Diseases </th><td colspan=3>'.$f_diseases.'</td></tr>
+				<tr><th>Allergies </th><td colspan=3>'.$f_allergens.'</td></tr>
+				<tr>
+					<th>Energy Requirement </th><td>'.$f_kcal.' KCal </td>
+					<th>CHO Requirement </th><td>'.$f_cho.' g/day</td>
+				</tr>
+				<tr>
+					<th>Protein Requirement </th><td>'.$f_protein.' g/day</td>
+					<th>Fat Requirement </th><td>'.$f_fat.' g/day</td>
+				</tr>
+		</table>
+		<br><br>',
+	);
+	
+	if($f_feeding_type == 'NGT'  || $f_feeding_type == 'Enteral'){
+	$form['total energy'] = array(
+				'#markup' => '<h><b>Total Energy consumed: '.$totalenergy. ' Kcal</b></h><br>
+				<h><b>Total CHO consumed: '.$totalcho. ' g/day</b></h><br>
+				<h><b>Total Fat consumed: '.$totalfat. ' g/day</b></h><br>
+				<h><b>Total Protein consumed: '.$totalprotein. ' g/day</b></h><br><br>',
+				);
+	
+	$form['ngt_diet'] = array(
+				'#markup' => '<h><b> Diet</b></h><form><table style="width:100%;" border=1px>
+				  <tr>
+				    <th>Time</th>
+				    <th>Food</th>
+				    <th>Quantity</th>
+					
+				  </tr>
+				<tr>
+				<th><input type = "text" value="6:00AM"> </th>
+				<td><input type ="text" value ="'.$nine_diet[5]['food_name'].'-'.$nine_diet[5]['malyalam'].'" style="
+    width: 100%;
+" ></td>
+				<td><input type = "text" value ="'.$nine_diet[5]['quantity'].' '.$nine_diet[5]['unit'].'"> </td>
+					
+				</tr>
+				
+				<tr>
+				<th><input type = "text" value="8:00AM"></th>
+				<td><input type ="text" value ="'.$nine_diet[1]['food_name'].'-'.$nine_diet[1]['malyalam'].'" " style="
+    width: 100%;
+" ></td>
+				<td><input type ="text" value = "'.$nine_diet[1]['quantity'].' '.$nine_diet[1]['unit'].'"> </td>
+				
+				</tr>
+				
+				<tr>
+				<th><input type = "text" value="10:00AM"></th>
+				<td><input type = "text" value="'.$nine_diet[2]['food_name'].'-'.$nine_diet[2]['malyalam'].'" " style="
+    width: 100%;
+" </td>
+				<td><input type = "text" value="'.$nine_diet[2]['quantity'].' '.$nine_diet[2]['unit'].'"></td>
+				
+				</tr>
+				<tr>
+				<th><input type = "text" value="12:00PM"></th>
+				<td><input type = "text" value="'.$nine_diet[0]['food_name'].'-'.$nine_diet[0]['malyalam'].'" " style="
+    width: 100%;
+" ></td>
+				<td><input type = "text" value="'.$nine_diet[0]['quantity'].' '.$nine_diet[0]['unit'].'"></td>
+				
+				</tr>
+				<tr>
+				<th><input type = "text" value="2:00PM"></th>
+				<td><input type = "text" value="'.$nine_diet[3]['food_name'].'-'.$nine_diet[3]['malyalam'].'" " style="
+    width: 100%;
+" ></td>
+				<td><input type = "text" value="'.$nine_diet[3]['quantity'].' '.$nine_diet[3]['unit'].'"></td>
+				
+				</tr>
+				<tr>
+				<th><input type = "text" value="4:00PM"></th>
+				<td><input type = "text" value="'.$nine_diet[4]['food_name'].'-'.$nine_diet[4]['malyalam'].'" " style="
+    width: 100%;
+" ></td>
+				<td><input type = "text" value="'.$nine_diet[4]['quantity'].' '.$nine_diet[4]['unit'].'"</td>
+			
+				</tr>
+				<tr>
+				<th><input type = "text" value="6:00PM"></th>
+				<td><input type = "text" value="'.$nine_diet[6]['food_name'].'-'.$nine_diet[6]['malyalam'].'" " style="
+    width: 100%;
+" ></td>
+				<td><input type = "text" value="'.$nine_diet[6]['quantity'].' '.$nine_diet[6]['unit'].'"></td>
+				
+				</tr>
+				<tr>
+				<th><input type = "text" value="8:00PM"></th>
+				<td><input type = "text" value="'.$nine_diet[7]['food_name'].'-'.$nine_diet[7]['malyalam'].'" " style="
+    width: 100%;
+" ></td>
+				<td><input type = "text" value="'.$nine_diet[7]['quantity'].' '.$nine_diet[7]['unit'].'"></td>
+				
+				</tr>
+				<tr>
+				<th><input type = "text" value="10:00PM"></th>
+				<td><input type = "text" value="'.$nine_diet[8]['food_name'].'-'.$nine_diet[8]['malyalam'].'" " style="
+    width: 100%;
+" ></td>
+				<td><input type = "text" value="'.$nine_diet[8]['quantity'].' '.$nine_diet[8]['unit'].'"></td>
+				
+				</tr></form></table><br><br>',
+				);
+		
+	}
+	
+	
+	if($f_feeding_type == 'Normal'){
+		$energy_tot=0;
+		$cho_tot=0;
+		$pro_tot=0;
+		$fat_tot=0;
+		
+		for($k=0; $k<count($seven_diet); $k++){
+			$energy_tot = $energy_tot + $seven_diet[$k]['kcal'] ;
+			$cho_tot = $cho_tot + $seven_diet[$k]['cho'];
+			$pro_tot = $pro_tot + $seven_diet[$k]['protein'];
+			$fat_tot = $fat_tot + $seven_diet[$k]['fat'] ;
+		}
+		
+		$sort_temp = array();
+				foreach ($seven_diet as $key => $row)
+				{
+					$sort_temp[$key] = $row ['value'];
+				}
+		array_multisort($sort_temp, SORT_ASC, $seven_diet);
+				
+		$tab = '<h><b><center> Diet </center></b></h><table style="width:100% "border=1px >  <tr>   <th>Time</th> <th>Food</th> <th>Quantity</th>  </tr>';
+		$normal_value = 10;
+		
+		for($i= 0; $i < count($seven_diet); $i++) {
+			
+			if( $i != count($seven_diet)-1) {
+				
+				if($seven_diet[$i]['value'] == $seven_diet[$i+1]['value']){
+					$row = $seven_diet[$i];
+					$tab = $tab.'<tr><th rowspan="2"><input type = "text" value = "'
+					.$row['time'].
+					' "></th><td><input type = "tetx" value = "'
+					.$row['food_name'].
+					'-'
+					.$row['malyalam'].
+					' " " style="
+    width: 100%;
+" ></td><td><input type = "text" value = "'
+					.$row['quantity'].
+					' '
+					.$row['unit'].
+					' "></td></tr><tr><td><input type = "tetx" value = " ';
+
+					$row = $seven_diet[$i+1];
+					$tab = $tab . $row['food_name'].
+					'-'
+					.$row['malyalam'].
+					' " " style="
+    width: 100%;
+" > </td><td><input type = "text" value = "'
+					.$row['quantity'].
+					' '
+					.$row['unit'].
+					'"></td></tr>';
+					++$i;
+				}
+				
+				else{
+					$row = $seven_diet[$i];
+					$tab = $tab.'<tr><th><input type = "text" value=" '
+					.$row['time'].
+					' "></th><td><input type = "text" value = "'
+					.$row['food_name'].
+					'-'
+					.$row['malyalam'].
+					'" " style="
+    width: 100%;
+" ></td><td><input type = "text" value = "'
+					.$row['quantity'].
+					' '
+					.$row['unit'].
+					'"></td></tr>';	
+				}
+				
+			}
+			else{
+				
+				$row = $seven_diet[$i];
+					$tab = $tab.'<tr><th><input type = "text" value = " '
+					.$row['time'].
+					' "></th><td><input type = "text" value = "'
+					.$row['food_name'].
+					'-'
+					.$row['malyalam'].
+					'"></td><td><input type = "text" value = "'
+					.$row['quantity'].
+					' '
+					.$row['unit'].
+					'"></td></tr>';
+				
+			}
+			
+		}
+		
+		$tab = $tab . '</table>';
+		
+		$form['total energy'] = array(
+				'#markup' => '<h><b>Total Energy consumed: '.$energy_tot. ' Kcal</b></h><br>
+
+				<h style="text-align: right;"><b>Total CHO consumed: '.$cho_tot. ' g/day</b></h><br>
+				<h><b>Total Fat consumed: '.$fat_tot. ' g/day</b></h><br>
+				<h style="text-align: right;"><b>Total Protein consumed: '.$pro_tot. ' g/day</b></h></div>
+				
+				<form><table style="width:100%;" border=1px>
+				<tr>
+				<th><center style="color: #F72222;">Avoid Food Items</center></th>
+				<th><center style="color: #EDED34;">Moderate  in Food Items</center></th>
+				<th><center style="color: #22F722;">Include Food Items</center></th>
+				</tr>
+				<tr>
+				<td style="width:34%;"> "'.$disease_avoid_desc.'" </td>
+				<td style="width:33%;"> "'.$disease_moderate_desc.'"</td>
+				<td style="width:33%;"> "'.$disease_incl_desc.'"</td></form></tr>',
+				);
+				
+		$form['normal_diet'] = array(
+			'#markup'=> $tab,
+		);
+	}
+	
+	global $base_url; 
+
+	$form['print']=array(
+		'#type' => 'image_button',
+		'#value' => t('Print'),
+		'#src' => $base_url . '/sites/default/files/print_icon.png',
+		'#attributes' => array('onclick' => 'window.print()', 'width' => '50px', 'height' => '50px' ),
+		'#prefix' => '<div class="col-md-6 col-lg-6">',
+		'#suffix' => '</div>',
+
+		//'#markup' => '<button onclick="window.print()">Print</button>',
+	);
+
+	$form['signature'] = array(
+		'#markup' => '<div  class="col-md-6 col-lg-6" style="text-align: right; padding-bottom: 10px;" > Authorized Signature</div>',
+	);
+	
+	$diet_suggested = '';
+	$foods_avoided = '';
+
+	if($f_feeding_type == 'NGT'  || $f_feeding_type == 'Enteral') {
+		foreach($nine_diet as $m){
+			$diet_suggested = $diet_suggested.$m['food_name'].'-'.$m['quantity'].'+';
+		}
+	}
+	if($f_feeding_type == 'Normal') {
+		$group_chang = trim(variable_get('variable_in_group'),',');
+		$group_chang = trim($group_chang);
+		$variable_in_group = explode(',',$group_chang);
+		foreach($variable_in_group as $g){
+			$foods_avoided = $foods_avoided.variable_get("rem_food$g");
+			//variable_del("rem_food$g");
+		}
+		//write for seven dietto add diet suggested.
+		foreach($seven_diet as $m){
+			$diet_suggested = $diet_suggested.$m['food_name'].'-'.$m['quantity'].'+';
+		}
+	}
+	 db_update('diet_details')
+				->fields(array(
+					'foods_avoided' => $foods_avoided,
+					'diet_suggested' => $diet_suggested,
+				))
+				->condition('diet_id',variable_get('diet_id'),'=')
+				->execute();
+	return $form;
+}
+
+function diet_suggest_form_submit($form, &$form_state) {
+
+	unset($_SESSION['pid']);
+
+	$opt = db_query('SELECT name FROM variable WHERE name LIKE :term', array(':term' => '%' . db_like('patient') . '%'))->fetchAll();
+
+	foreach ($opt as $val) {
+		db_delete('variable')->condition('name', $val->name, '=')->execute();
+	}
+
+}

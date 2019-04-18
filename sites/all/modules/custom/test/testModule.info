@@ -1,0 +1,4 @@
+name = Test Module
+description = Administrative interface to views. Without this module, you cannot create or edit your views.
+package = Custom
+core = 7.x

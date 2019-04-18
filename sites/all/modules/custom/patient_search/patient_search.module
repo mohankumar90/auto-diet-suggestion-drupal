@@ -1,0 +1,636 @@
+<?php 
+function patient_search_menu(){
+	$items = array();
+	  
+	$items['edit_details/%'] = array(
+		'title' => 'Patient Details',
+		'page callback' => 'drupal_get_form',
+		'page arguments'=> array('multi_form'),
+		'access callback' => 'user_is_logged_in',
+	    'type' => MENU_NORMAL_ITEM,
+	);
+
+	return $items;
+}
+
+
+function patient_search_block_info() {
+  $blocks = array();
+  $blocks['patient search'] = array(
+    'info' => t('Patient search'), 
+    'cache' => DRUPAL_CACHE_GLOBAL,
+  );
+
+  return $blocks;
+}
+
+
+/**
+ * Implements hook_block_view().
+ */
+function patient_search_block_view($delta = '') {
+	$block = array();
+
+  switch ($delta) {
+    case 'patient search':
+      $block['content'] =  drupal_get_form('patient_search_form');
+    break;
+  }
+ 
+  return $block;
+}
+
+function patient_search_form($form, &$form_state){
+	
+	global $x;
+	$form_state['redirect']=true;
+	$header=array('p_id'=>t('Patient ID'),'p_name' => t('Patient Name'), 'mrd_no' => t('MRD No.'), 'age' => t('Age'), 'place' => t('Place'), 'gender' => t('Gender'), 'disease_id'=>t('Diseases'));
+	$form =array();
+
+	$form['search_type'] = array(
+		'#type' => 'radios',
+		'#title' => t('Search Type'),
+		'#options' => array(
+			0 => 'Search with Patient ID',
+			1 => 'Search with Name & MRD No',
+		),
+		'#default_value' => 0,
+		'#required' => TRUE,
+		'#ajax' => array(
+			'callback' => 'search_callback',
+			'wrapper' => 'search_form_div',
+		),
+	);
+
+	$form['search_form_set'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Search Form'),
+		'#prefix' => '<div id="search_form_div">',
+		'#suffix' => '</div>',
+	);
+
+	if(empty($form_state['values'])) {
+		$form['search_form_set']['id_key'] = array(
+		    '#type' => 'textfield',
+		    '#title' => t('Patient ID'),
+		    '#required' => TRUE,
+		);
+	} else {
+
+	if( $form_state['values']['search_type'] == 0) {
+
+		$form['search_form_set']['id_key'] = array(
+		    '#type' => 'textfield',
+		    '#title' => t('Patient ID'),
+		    '#required' => TRUE,
+		);
+
+	}
+
+	else {
+
+		$form['search_form_set']['name_key'] = array(
+		    '#type' => 'textfield',
+		    '#title' => t('Patient Name'),
+		    '#required' => TRUE,
+		);
+
+		$form['search_form_set']['mrd_key'] = array(
+			'#type' => 'textfield',
+			'#title' => t('Hospital ID/MRD No.'),
+		);
+
+	}
+	}
+
+	$form['submit'] = array(
+	    '#type' => 'submit',
+	    '#value' => t('Search Patient'),	
+	);
+		if( !empty($form_state['values']) ) {
+		if ($form_state['values']['search_type'] == 1 && !empty($form_state['values']['name_key'])) 
+		{
+
+			$name_key = $form_state['values']['name_key'];
+			$mrd_key = $form_state['values']['mrd_key'];
+
+	 		$query = db_select('patient_details', 'n');
+	 		$query->fields('n', array('p_id'));
+			$query->fields('n', array('p_name'));
+			$query->fields('n', array('mrd_no'));
+			$query->fields('n', array('age'));	
+			$query->fields('n', array('place'));
+			$query->fields('n', array('gender'));
+			$query->fields('n', array('disease_ids'));
+			$query->condition('n.p_name','%'. db_like($name_key) .'%', 'LIKE');
+			$query->condition('n.mrd_no','%'. db_like($mrd_key) .'%', 'LIKE');
+			$column = $query->execute();
+			$row_count = $column->rowcount();
+
+			while ($n = $column->fetchAssoc()) {
+				$disease = "";
+				$output = array();
+				$temp = $n['disease_ids'];
+				$diseaseid = explode(',', $temp);
+				
+				foreach($diseaseid as $y)
+					$output[]=db_query('SELECT title FROM {node} WHERE nid = :type', array(':type' => $y))->fetchField();
+							
+				foreach($output as $k)
+					$disease = $disease . "," . $k;
+				
+				$disease = trim($disease, ",");
+				
+				$row[] = array(
+					'p_id' => $n['p_id'],
+					'p_name' => l(t($n['p_name']),"edit_details/".$n['p_id']),
+					'mrd_no' => $n['mrd_no'],
+					'age' => $n['age'],
+					'place' => $n['place'],
+					'gender'=> ($n['gender'] == 0) ? t('Male') : t('Female'),
+					'disease_id' => $disease,
+				);
+			}
+		
+			if ( $row_count == 0 ) {						// or (!preg_match("/^[a-zA-Z ]*$/",$text))
+				drupal_set_message("no records found");
+			}	
+			else 
+			{
+				 $form['table'] = array(
+					 '#theme'=>'table',
+					 '#header'=>$header,
+					 '#rows'=>$row,
+				 );
+			} 
+		}	
+
+		else if ($form_state['values']['search_type'] == 0 && !empty($form_state['values']['id_key'])) {
+			$id_key = $form_state['values']['id_key'];
+
+	 		$query = db_select('patient_details', 'n');
+	 		$query->fields('n', array('p_id'));
+			$query->fields('n', array('p_name'));
+			$query->fields('n', array('mrd_no'));
+			$query->fields('n', array('age'));	
+			$query->fields('n', array('place'));
+			$query->fields('n', array('gender'));
+			$query->fields('n', array('disease_ids'));
+			$query->condition('n.p_id', $id_key, '=');
+			$column = $query->execute();
+			$row_count = $column->rowcount();
+
+			while ($n = $column->fetchAssoc()) {
+				$disease = "";
+				$output = array();
+				$temp = $n['disease_ids'];
+				$diseaseid = explode(',', $temp);
+				
+				foreach($diseaseid as $y)
+					$output[]=db_query('SELECT title FROM {node} WHERE nid = :type', array(':type' => $y))->fetchField();
+							
+				foreach($output as $k)
+					$disease = $disease . "," . $k;
+				
+				$disease = trim($disease, ",");
+				
+				$row[] = array(
+					'p_id' => $n['p_id'],
+					'p_name' => l(t($n['p_name']),"edit_details/".$n['p_id']),
+					'mrd_no' => $n['mrd_no'],
+					'age' => $n['age'],
+					'place' => $n['place'],
+					'gender'=> ($n['gender'] == 0) ? t('Male') : t('Female'),
+					'disease_id' => $disease,
+				);
+			}
+		
+			if ( $row_count == 0 ) {						// or (!preg_match("/^[a-zA-Z ]*$/",$text))
+				drupal_set_message("no records found");
+			}	
+			else 
+			{
+				 $form['table'] = array(
+					 '#theme'=>'table',
+					 '#header'=>$header,
+					 '#rows'=>$row,
+				 );
+			}
+		}
+		}  
+
+  	return $form;
+}
+
+
+function patient_search_form_submit($form, &$form_state) {
+	$form_state['rebuild'] = true;
+}
+
+function search_callback($form, $form_state) {
+	return $form['search_form_set'];
+}
+
+
+function multi_form($form, &$form_state) {
+	
+    global $temp;
+	$temp = arg(1); 
+	$form_state['redirect'] = true; 
+	global $user;
+	global $user_details;
+	
+	$query = db_select('patient_details', 'n');
+	$query->fields('n', array('p_name'));
+	$query->fields('n', array('age'));	
+	$query->fields('n', array('mrd_no'));
+	$query->fields('n', array('p_id'));
+	$query->fields('n', array('gender'));
+	$query->fields('n', array('blood_group'));
+	$query->fields('n', array('disease_ids'));
+	$query->fields('n', array('place'));
+	$query->fields('n', array('height'));
+	$query->fields('n', array('weight'));
+	$query->fields('n', array('bp'));
+	$query->fields('n', array('activity_factor'));
+	$query->fields('n', array('exercise_factor'));
+	$query->fields('n', array('injury_factor'));
+	$query->fields('n', array('allergens'));
+	$query->condition('n.p_id', $temp, '=');
+	$column = $query->execute();
+	$result = $column->fetchAssoc();
+	
+	$_SESSION['pid'] = $temp;
+
+	$form['pid_mrd'] = array(
+		'#markup' => '<h3>Patient ID: ' . $temp . '&nbsp&nbsp&nbsp&nbsp&nbsp MRD No: ' . $result['mrd_no'] . '</h3>',
+	);
+	
+	$form['p_name'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Name'), 
+		'#size' => 30, 
+		'#default_value' => $result['p_name'],
+		'#maxlength' => 128, 
+		'#required' => TRUE,
+		'#prefix' => '<div class="col-md-6 col-lg-6">',
+	);
+	
+	$form['age'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Age'), 
+		'#size' => 30, 
+		'#maxlength' => 30, 
+		'#required' => TRUE,
+		'#default_value'=>$result['age'],
+	);
+	
+	$form['gender'] = array(
+		'#type' => 'radios',
+		'#title' => t('Gender'),
+		'#default_value'=>intval($result['gender']),
+		'#options' => array(
+			0 => 'Male',
+			1 => 'Female',
+		),
+		'#required' => TRUE,
+	);
+	
+	$form['place'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Place'), 
+		'#size' => 30, 
+		'#maxlength' => 128, 
+		'#default_value'=>$result['place'],
+		'#required' => TRUE,
+	);
+	
+	$form['height'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Height (cm)'), 
+		'#size' => 30, 
+		'#maxlength' => 30, 
+		'#required' => TRUE,
+		'#default_value'=>$result['height'],
+		'#attributes' => array('placeholder' => t( 'in Centi Meters' )),
+	);
+	
+	$form['weight'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Weight (kg)'), 
+		'#size' => 30, 
+		'#maxlength' => 30, 
+		'#required' => TRUE,
+		'#default_value'=>$result['weight'],
+		'#attributes' => array('placeholder' => t( 'in Kilo Grams' )),
+		'#suffix' => '</div>',
+	);
+	
+	$form['bp'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Blood Pressure (mmHg)'), 
+		'#size' => 30, 
+		'#maxlength' => 30,
+		'#default_value'=>$result['bp'],
+		'#attributes' => array('placeholder' => t( 'sys/dias' )),
+		'#prefix' => '<div class="col-md-6 col-lg-6">',
+	);
+	
+	$form['blood_group'] = array(
+		'#type' => 'select',
+		'#title' => t('Blood Group'), 
+		'#options' => array(
+			'A+' => 'A +ve',
+			'B+' => 'B +ve',
+			'AB+' => 'AB +ve',
+			'O+' => 'O +ve',
+			'A-' => 'A -ve',
+			'B-' => 'B -ve',
+			'AB-' => 'AB -ve',
+			'O-' => 'O -ve',
+			), 
+			'#default_value' => $result['blood_group'],
+	);
+	
+	// ********* Activity Factor (using DataBase) ***********
+	
+	/*$query = db_select('node', 'n');
+	
+	$query->join('field_data_field_activity_value','v', 'n.nid = v.entity_id');
+	
+	$query
+		->fields('v',array('field_activity_value_value'))
+		->fields('n',array('title'));
+		//->condition('n.type', 'activity_factor');
+		
+		$res = $query->execute();*/
+		
+	$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = :type', array(':type' => 'activity_factor'));
+	
+	$opts = $query->fetchAllKeyed();				
+	
+	$form['activity_factor'] = array(
+		'#type' => 'select',
+		'#title' => t('Activity Factor'),
+		'#options' => $opts,
+		'#default_value' => $result['activity_factor'],
+		'#required' => TRUE,
+	);
+
+	//$place is a variable to check if the patient had filled any exercise factor earlier
+	/*if ($result['exercise_factor']){
+		$place = 1;
+		} 
+	else {
+		$place = 0;
+	}*/
+	
+	$form['check'] = array(
+		'#type' => 'checkbox',
+		'#title' => t('Add Exercise'),
+		'#default_value' => $result['exercise_factor'],  //$place,
+		//'#default_value'=>$_SESSION[$x]['exercise_factor'],
+	);
+//drupal_set_message('x'.$result['exercise_factor'].''.$place,'status');
+	/* if ($result['exercise_factor']){
+		$form_state['input']['check'] = 1;
+		} */
+	
+	// ********* Activity Factor based on Exercise (using DataBase) ***********
+	
+	$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = :type', array(':type' => 'activity_factor_for_exercise'));
+	
+	$opts = $query->fetchAllKeyed();
+	
+	$form['exercise'] = array(
+		'#type' => 'select',
+		'#title' => t('Exercises'), 
+		'#options' => $opts,
+		'#states' => array(
+		  'invisible' => array(
+			':input[name="check"]' => array('checked' => FALSE),
+		  ),
+		),
+		'#default_value' => $result['exercise_factor'],
+	);
+	
+	
+	// ********* Injury Factor (using DataBase) ***********
+	
+	$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = :type', array(':type' => 'injury_factor'));
+	
+	$opts = $query->fetchAllKeyed();
+	
+	$form['injury_factor'] = array(
+		'#type' => 'select',
+		'#title' => t('Injury Factor'),
+		'#options' => $opts,
+		'#default_value' => $result['injury_factor'],
+		'#required' => TRUE,
+	);
+	
+	$m = !empty($form_state['values']['injury_factor']) ? $form_state['values']['injury_factor'] : 0;
+	$min = 1;
+	$max = 1.75;
+	variable_set('def', 1); 
+
+	switch ($m)
+	{
+		case 0:
+			$min = 1;
+			$max = 1.75;
+			//$def = 1;
+			break;
+			
+		default:
+			$loc_query = db_query('SELECT n.field_injury_value_value AS val FROM {field_data_field_injury_value} n WHERE n.entity_id = :type', array(':type' => $m));
+			$min = $loc_query->fetchField(0);
+			$loc_query = db_query('SELECT n.field_injury_value2_value AS val FROM {field_data_field_injury_value2} n WHERE n.entity_id = :type', array(':type' => $m));
+			$max = $loc_query->fetchField(0);
+
+			variable_set('def', ($min + $max) / 2);
+
+			break;
+	}
+
+
+	// ********* Food Preference ***********
+
+	$food_pref = db_query('SELECT d.food_pref FROM {diet_details} d WHERE d.p_id = ' . $temp . ' GROUP BY d.p_id ')->fetchField();
+
+	$form['food_preference'] = array(
+		'#type' => 'select',
+		'#title' => t('Food Preference'),
+		'#options' => array(
+			0 => 'Vegeterian',
+			1 => 'Non-Vegeterian',
+		),
+		'#default_value' => $food_pref[0],
+		'#required' => TRUE,
+	);
+	
+
+	// ********* Allergens list (using DataBase) ***********
+	
+	$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = :type', array(':type' => 'allergen'));
+	
+	$opts = $query->fetchAllKeyed();
+	$def_opts = explode(',',$result['allergens']);
+	
+	$form['allergens'] = array(
+		'#type' => 'select',
+		'#title' => t('Allergens'),
+		'#options' => $opts,
+		'#default_value' => $def_opts,
+		'#multiple' => TRUE,
+		'#chosen' => TRUE,
+	);
+	
+	
+	// ********* Disease list from the DataBase ***********
+	
+	$query = db_query('SELECT n.nid, n.title FROM {node} n WHERE n.type = :type', array(':type' => 'disease'));
+	
+	$opts = $query->fetchAllKeyed();
+	$def_opts=explode(',',$result['disease_ids']);
+	
+	$form['disease_ids'] = array(
+		'#type' => 'select',
+		'#title' => t('Diseases'),
+		'#multiple' => TRUE,
+		'#options' => $opts,
+		'#default_value'=>$def_opts,
+		'#chosen' => TRUE,
+		'#suffix' => '</div>',
+	);
+	
+	$form['buttons']['submit'] = array(
+		'#value' => t('Update Details'),
+		'#type' => 'submit',
+	);
+	
+	$form['actions']['reset'] = array(
+		'#markup' => '<input class="btn btn-sm" style="margin-right: 5px; background-color: #c33066; color: white;" id="resetb" type="reset" value="Reset" />', 
+		'#weight' => 1000
+	);
+
+	$form['redirect_diet_pref'] = array(
+		'#type' => 'submit',
+		'#value' => 'Create new diet',
+		'#submit' => array('redirect_diet_pref'),
+		
+     );
+
+	
+	//drupal_add_js(drupal_get_path('module', 'patient') . '/patient_js.js');
+	if ($user->uid and $temp!=null){
+	return $form;
+	}
+	else if($user->uid and $temp==null){
+		//drupal_set_message('login to edit ','status');
+		drupal_goto("<front>");
+		drupal_set_message("you are here");
+	}
+	else{
+		drupal_set_message('login to edit the details','status');
+	}
+	//if 
+}
+
+function redirect_diet_pref($form, &$form_state){
+	drupal_goto('diet_pref');
+}
+
+function multi_form_validate($form, &$form_state){
+	if(!(empty($form_state['values']['p_name']) && empty($form_state['values']['age']) && empty($form_state['values']['height']) && empty($form_state['values']['weight']) && empty($form_state['values']['bp'])))
+  {
+	if (!preg_match("/^[a-zA-Z ]*$/", $form_state['values']['p_name'])) {
+		form_set_error('p_name', t('Alphabets & Whitespaces only allowed for Patient Name'));  
+	}
+	
+	if (!preg_match("/^[0-9]+$/", $form_state['values']['age'])) {
+		form_set_error('age', t('Not a valid Age'));
+	}
+	
+	if (!preg_match("/^[0-9]+(\.[0-9]{1,2})?$/", $form_state['values']['height'])) {
+		form_set_error('height', t('Not a valid Height'));
+	}
+	
+	if (!preg_match("/^[0-9]+(\.[0-9]{1,2})?$/", $form_state['values']['weight'])) {
+		form_set_error('weight', t('Not a valid Weight'));
+	}
+	
+	/* if (!preg_match("/^[0-9]+\/+[0-9]+$/", $form_state['values']['bp'])) {
+		form_set_error('bp', t('Not a valid Blood Pressure'));
+	} */
+  }
+}
+
+function multi_form_submit($form,&$form_state){
+	$form_state['rebuild']=true;
+	$form_state['redirect']=true;
+	global $temp;
+	global $user;
+	//global $x;
+	
+	$p_name = $form_state['values']['p_name'];
+	$age = $form_state['values']['age'];
+	$gender = $form_state['values']['gender'];
+	$place = $form_state['values']['place'];
+	$height = $form_state['values']['height'];
+	$weight = $form_state['values']['weight'];
+	$bp = $form_state['values']['bp'];
+	$blood_group =  $form_state['values']['blood_group'];
+	$activity_factor = $form_state['values']['activity_factor'];
+	$exercise_factor = ($form_state['values']['check'] == TRUE) ? $form_state['values']['exercise'] : NULL;
+	$injury_factor = $form_state['values']['injury_factor'];
+
+	$injury_value = variable_get('def');
+	variable_del('def');
+
+	$allergens = $form_state['values']['allergens'];
+	$disease_ids = $form_state['values']['disease_ids'];	
+	$allergens_str = '';
+	$diseases_str = '';
+	
+	foreach($allergens as $i)
+		$allergens_str = $allergens_str . $i .',';
+		
+	foreach($disease_ids as $i) 
+		$diseases_str = $diseases_str . $i. ',';
+		
+	db_update('patient_details')
+				->fields(array(
+					'p_name' => $p_name,
+					'created' => REQUEST_TIME,
+					'age' => $age,
+					'gender' => $gender,
+					'place' => $place,
+					'height' => $height,
+					'weight' => $weight,
+					'bp' => $bp,
+					'blood_group' => $blood_group,
+					'activity_factor' => $activity_factor,
+					'exercise_factor' => $exercise_factor,
+					'injury_factor' => $injury_factor,
+					'injury_value' => $injury_value,
+					'allergens' => $allergens_str,
+					'disease_ids' => $diseases_str,
+					'uid' => $user->uid,
+				))
+				->condition('p_id', $temp, '=')
+				->execute();
+	
+	
+	$temp = NULL;
+/* 	$form_state['rebuild'] = TRUE;
+	$form_state['redirect']= drupal_goto("<front>");
+	drupal_set_message("Saved Patient details ", 'status'); */
+	drupal_set_message('form submitted successfully');
+  	drupal_goto('<front>');
+}
+  
+
+   
+
+  

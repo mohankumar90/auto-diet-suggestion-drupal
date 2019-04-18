@@ -1,0 +1,177 @@
+Food_Name,Malayalam,Measure_Unit,Food Type,Allergen,veg_egg_coconut,Time Category,Group,Energy,Protein,Fat,CHO
+Almond,ബദാം കായ്,g,normal,Nuts,000,Mid of Lunch-Night,nut,655,20.8,58.9,41.7
+Aloo paratha,ആലൂ പൊറോട്ട,num,normal,,000,Lunch+Night,tiffin,213,4.8,31.5,22.42
+Amaranth spinosus with coconut,മുള്ളഞ്ചീര,serving,normal,,001,Lunch,curry,137,2.7,9.7,9.72
+Amaranth spinosus without coconut,മുള്ളഞ്ചീര,serving,normal,,000,Lunch,curry,114.26,2.46,7.6,9.005
+Amla,നെല്ലിക്ക,g,normal,,000,Mid of Lunch-Night,fruit,57.99,0.5,0.1,0
+Appam,"അപ്പംഅരി 30,എണ്ണ 1.3",num,normal,,001,Morning,tiffin,115.5,2.04,0.15,23.46
+Apple,ആപ്പിള്‍,num,normal,,000,Morning+Mid of Mng-Lunch+Mid of Lunch-Night,fruit,59,0.2,0.5,13.4
+Apple,ആപ്പിള്‍,g,fluid,,000,Morning+Mid of Mng-Lunch+Mid of Lunch-Night,fruit,59,0.2,0.493,13.44
+Apple Juice,ആപ്പിള്‍ ജൂസ്,ml,normal,,000,Morning+Mid of Mng-Lunch+Mid of Lunch-Night,juice,58.4,0.2,0.5,9.825
+Avial with coconunt,അവിയല്‍,cup,normal,,001,Morning,curry,123,2.2,8.3,9.87
+Badam,ബദാംകായ്‌,g,normal,,000,Mid of Mng-Lunch,nut,655,20.8,58.9,10.5
+Banana,ഏത്തപ്പഴം,g,normal,,000,Mid of Mng-Lunch,fruit,116,1.2,0.3,27.12
+Banana,ഏത്തപ്പഴം,num,normal,,000,Mid of Mng-Lunch+Night,fruit,116,1.2,0.3,27.2
+Banana Juice,നേന്ത്രക്കായ്‌ പാനീയം,ml,fluid,,000,Mid of Mng-Lunch+Mid of Lunch-Night,juice,154.66,3.64,3.84,22.04
+Bar one,ബാർ ഒറ്റ,g,normal,Milk,000,All,chocolate,394,5.6,14,61.4
+Basmathi Rice,ബസ്മതി ചോറ്,serving,normal,Nuts,000,Lunch+Night,sp_rice,205,4.2,0.4,46.05
+Beans with coconut,പയര്‍,serving,normal,,001,Lunch+Night,curry,172,4.6,8,20.4
+Beans without coconut,പയര്‍,serving,normal,,000,Lunch+Night,curry,149,54.4,5.85,30.3
+Beef Biryani,പോത്ത്‌ ബിരിയാണി,serving,normal,Beef,100,Lunch+Night,curry,364.5,25.8,18.24,23.52
+Beef Curry,ബീഫ് കറി,cup,normal,Beef,100,Lunch+Night,curry,85.42,24.35,9.22,3.47
+Beetroot-with coconut,ബീറ്റ്റൂട്ട്,serving,normal,,001,Lunch+Night,curry,115,1.82,7.5,10.05
+Beetroot-without coconut,ബീറ്റ്റൂട്ട്,serving,normal,,000,Lunch+Night,curry,92,1.6,5.4,9.25
+Bengal gram dhal,കടല പരിപ്പ്‌,cup,normal,,000,Lunch+Night,curry,124,5.6,4.1,16.17
+Bengal gram(whole),കടല,cup,normal,,000,Lunch+Night,curry,113,10,12.5,9.87
+Bengalgram curry,കടല കറി,cup,normal,,000,Lunch+Night,curry,108,5.13,1.6,18.3
+Biscut -Monaco,മൊണാകോ,g,normal,Wheat,000,Mid of Mng-Lunch+Mid of Lunch-Night,biscuit,503,7.8,23,66.2
+Biscut-50-50,50-50 ബിസ്കറ്റ്,g,normal,Wheat,000,Mid of Mng-Lunch+Mid of Lunch-Night,biscuit,477,7,19.5,68.37
+Biscut-Marie Gold,മേരി ഗോൾഡ്,g,normal,Wheat,000,Mid of Mng-Lunch+Mid of Lunch-Night,biscuit,434,8,10.5,76.87
+Biscut-Milk Bikis,പാൽ Bikis,g,normal,Wheat,000,Mid of Mng-Lunch+Mid of Lunch-Night,biscuit,494,7,22,67
+Bitter gourd-without coconnut,കൈപ്പക്ക,serving,normal,,000,Lunch+Night,curry,78,1.22,5.41,6.1
+B-Protein,ബി പ്രോട്ടീന്,cup,normal,Soya,000,,protein,116,12,0.6,15.6
+Brinjal without coconut,വഴുതനങ്ങ,serving,normal,,000,Lunch+Night,curry,85,1.44,5.5,6.9
+Britania Nutritive Choice,"
+Britania പോഷക ചോയിസ്",g,normal,,000,Mid of Lunch-Night,biscuit,456,8.25,15.5,70.87
+Bun,ബണ്‍,num,normal,Wheat,000,Morning,bread,87,2.75,0.225,18.49
+Burger,ബർഗർ,serving,normal,Wheat,000,Lunch,snacks,443.8,17.11,6.35,79.55
+Buttermilk curry,മോര്‌ കറി,cup,normal,Milk,000,Lunch,curry,69,1.3,5.2,4.25
+buttermilk(200 ml),മോര്‌200,cup,fluid,Milk,000,Mid of Mng-Lunch,juice,30,1.6,2.2,0.95
+Buttura,"ബട്ടുറമൈദ 30,എണ്ണ 10",num,solid,,000,Morning,tiffin,156.6,2.61,10.12,22.17
+Cabage thoran,കാബേജ് തോരന്‍,cup,normal,,000,Lunch+Night,curry,8.1,0.84,0.03,11.2
+Cabbage with coconut,കാബേജ്,serving,normal,,001,Lunch+Night,curry,107,1.82,7.5,28.57
+Cabbage without coconut,കാബേജ്,serving,normal,,000,Lunch+Night,curry,84,1.6,5.4,13.75
+Cadburys Diary milk,Cadburys ഡയറി പാൽ,g,normal,Milk,000,All,chocolate,504,11,28,52
+Carrot with coconut,കാരറ്റ്‌,serving,normal,,001,Lunch+Night,curry,117,1.42,7.5,10.95
+Carrot without coconut,കാരറ്റ്‌,serving,normal,,000,Lunch+Night,curry,94.3,1.2,5.4,10.22
+Cashew Nut,കശുവണ്ടി,g,normal,Nuts,000,Mid of Mng-Lunch+Mid of Lunch-Night,nut,596,21.2,46.9,21.7
+Cashew Nut(roasted),കശുവണ്ടി പൊരിച്ച,g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,nut,594,19.3,42.9,32.7
+Chappathi,"ചപ്പാത്തിഗോതമ്പ്‌ 30,എണ്ണ 5",num,normal,Wheat,000,Morning+Night,tiffin,147.3,3.63,5.51,20.82
+Cheetos,Cheetos,g,normal,,000,All,snacks,467,19,7,82
+Cherries(red),ചെറി,g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,640,4.13,0.53,155.13
+Chicken Biryani,കോഴി ബിരിയാണി,serving,normal,Nuts,100,Lunch+Night,sp_rice,32.7,7.77,0.18,23.46
+Chicken Curry,ചിക്കന്‍ കറി,cup,normal,Nuts,100,Lunch+Night,curry,124.12,32.285,9.42,4.76
+Chicken Fried Rice,ചിക്കന്‍ ഫ്രൈഡ് റൈസ്,serving,normal,Nuts,100,Lunch+Night,sp_rice,273.5,8.55,15.39,29.18
+Chicken Fry,ചിക്കന്‍ ഫ്രൈ,piece,normal,,100,Lunch+Night,curry,144.5,12.95,10.3,0
+Chocolates-5 star,5 നക്ഷത്ര,g,normal,Milk,000,All,chocolate,414,3.89,16,63.61
+Coconut chadni,തേങ്ങ ചട്‌ണി,cup,soft,,001,Morning,chutney,137.5,1.48,12.47,4.79
+Coconut chadni,തേങ്ങ ചട്‌ണി,tbsp,soft,,001,Morning,chutney,10.5,0.15,0.85,0.5625
+Coffee,"കോഫീപാല് 50, പഞ്ചസാര 5",cup,fluid,Milk,000,Mid of Mng-Lunch+Mid of Lunch-Night,coffee,53.5,1.6,2.05,0
+Colacasia with coconut,ചേമ്പ്,serving,normal,,001,Lunch+Night,curry,141,2.5,7.5,15.87
+Colacasia without coconut,ചേമ്പ്,serving,normal,,000,Lunch+Night,curry,118.78,2.24,5.4,15.3
+Conflakes with milk,കോണ്‍ഫ്ലയിക്കും പാലും,serving,normal,,000,Morning+Mid of Lunch-Night,tiffin,302.9,7.23,6.27,54.38
+Dates Juice,ഈന്തപ്പഴം ചാറ്,ml,fluid,,000,Mid of Mng-Lunch+Mid of Lunch-Night,juice,400,5.7,4.5,80.2
+Dates(Lion),തീയതി ( ലയൺ ),g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,nut,309,2,0.4,74.35
+Dosa,ദോശ,num,soft+normal,,000,Morning+Night,tiffin,85,2.1,1,16.9
+Dried Dates,ഉണങ്ങിയ ഈന്തപ്പഴം,g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,nut,317,2.5,0.4,0
+Dried Grape,ഉണക്കമുന്തിരി,g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,nut,308,1.8,0.3,74.6
+Drumstick leaves with coconut,മുരിങ്ങയില,serving,normal,,001,Lunch+Night,curry,139,4.32,8.3,11.75
+Drumstick leaves without coconut,മുരിങ്ങയില,serving,normal,,000,Lunch+Night,curry,116,4.1,6.2,10.95
+Egg,മുട്ട,num,normal,Egg,110,Morning+Lunch+Night,egg,66,5,13.3,0
+Egg Boiled,മുട്ട പുഴുങ്ങിയത്,num,normal,Egg,110,Morning+Lunch+Night,snacks,86.5,6.6,6.6,0
+Egg Curry,മുട്ടക്കറി,cup,normal,Egg,110,Morning+Lunch+Night,curry,155.9,7.04,11.63,5.63
+Egg Scrambled,മുട്ട സ്ക്രാംബിൾഡ്,cup,normal,Egg,110,Lunch+Night,curry,91,6.82,6.67,0.92
+Fashion fruit,പാഷന്‍ ഫ്രൂട്ട്,g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,12.4,0.89,0.1,0
+Field beans with coconut,അവര,serving,normal,,001,Lunch+Night,curry,117,2.9,7.8,8.8
+Field beans without coconut,അവര,serving,normal,,000,Lunch+Night,curry,94.26,2.64,5.7,8.1
+Fish Curry,മീന്‍ കറി,g,normal,,100,Lunch+Night,curry,232.93,21,16.56,0
+Fish Curry (Prawns),മീന്‍ കറി (ചെമ്മീന്‍),serving,normal,,100,Lunch+Night,curry,125.2,3.49,10.54,4.09
+Fish Curry (sardine),മത്തി കറി,serving,normal,,100,Lunch+Night,curry,142.62,16.43,6.42,4.28
+Fish fry(sardine),മത്തി മീന്‍ വറുത്തത്‌,piece,normal,,100,Lunch+Night,curry,180.62,16.34,11.69,2.51
+Grape Juice,മുന്തിരി ജൂസ്,ml,fluid,,000,Mid of Mng-Lunch+Mid of Lunch-Night,juice,90.53,0.6,0.4,13.099
+Grapes black,മുന്തിരിങ്ങ കറുപ്പ്‌,g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,58,0.6,0.4,0
+Grapes green,മുന്തിരിങ്ങ പച്ച,g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,71,0.5,0.3,0
+Green gram dhal,ചെറുപയര്‍ പരിപ്പ്‌,cup,normal,,000,Mid of Lunch-Night,curry,161,9,4.5,21.12
+Green gram(whole),ചെറുപയര്‍,cup,normal,,000,Mid of Lunch-Night,curry,113,6.4,3.3,14.42
+Ground Nut Fried,നിലക്കടല വറുത്തത്‌,g,normal,Nuts,000,Mid of Lunch-Night,nut,570,26.2,39.8,0
+Guava,പേരയ്ക്ക,num,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,51,0.9,0.3,11.2
+Ice cream(Honey nut Crunch),ഐസ് ക്രീമ്,serving,normal,,000,Mid of Lunch-Night,ice_cream,237,4.7,14.6,21.68
+Idiyappam,"നൂല്‍പുട്ട്‌അരി 30,തേങ്ങ 2",num,soft,,000,Morning,tiffin,77.8,1.45,0.93,23.46
+Idli,ഇഡ്ഡലി,num,soft+normal,,000,Morning+Night,tiffin,76.3,2.4,0.13,16.38
+Jackfruit,ചക്കപ്പഴം,g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,88,1.9,0.1,19.86
+Kovai with coconut,കോവക്ക,serving,normal,,001,Lunch+Night,curry,99,1.32,7.5,6.55
+Kovai without coconut,കോവക്ക,serving,normal,,000,Lunch+Night,curry,76,1.1,5.38,5.79
+Krack jack,Krack jack,g,normal,,000,All,biscuit,496,6.9,21.5,68.72
+Kurkure,Kurkure,g,normal,,000,All,snacks,561,6.4,35.7,53.52
+ladys finger without coconut,വെണ്ടക്ക,serving,normal,,000,Lunch+Night,curry,88,1.69,5.45,8.04
+Lays(tomato),Lays (തക്കാളി),g,normal,,000,All,snacks,544,7,33,54.75
+Lemon,ചെറുനാരങ്ങ,g,normal,Citrus fruit,000,All,fruit,57,1,0.9,0
+Maggi noodles,മാഗി,serving,normal,,000,Mid of Lunch-Night,snacks,400,9.6,15,56.65
+Maida Bread,മൈദ റൊട്ടി60,num,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,bread,73.5,2.34,0.21,15.7
+Mango,മാങ്ങ,g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,74,0.6,0.4,60
+Mango Juice,മാങ്ങ ജൂസ്,ml,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,juice,90,0.6,0.4,16.9
+Masala Dosa,മസാല ദോശ,num,soft+normal,,000,Morning+Night,tiffin,192,3.8,6.5,29.57
+Milk,പാല്,ml,fluid,Milk,000,Morning+Night,milk,67,3.2,4.1,4.4
+Milky bar,ക്ഷീരപഥം ബാർ,g,normal,Milk,000,All,chocolate,518,8.4,30,53.6
+Mixed jam,മിക്സ്റ്റ് ജാം,g,normal,,000,All,jam,34.9,0.3,0.1,26.8
+Munch,Munch,g,normal,,000,All,chocolate,379,6.5,23,36.5
+Musambi,മുസംബി,num,normal,Citrus fruit,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,35,0.7,0.3,7.3
+Musambi,മുസംബി,g,fluid,Citrus fruit,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,43,0.8,0.306,1.489
+Musambi Juice,മുസംബി ജൂസ്,ml,normal,Citrus fruit,000,Mid of Mng-Lunch+Mid of Lunch-Night,juice,84.05,1.08,0.405,12.555
+Mutton Biryani,ആട് ബിരിയാണി,serving,normal,,100,Lunch+Night,sp_rice,299.7,7.59,19.14,23.46
+Mutton curry,മട്ടന്‍ കറി,g,normal,,100,Lunch+Night,curry,299.4,18.5,21.38,7.46
+Noodles chicken,ചിക്കന്‍ നൂഡില്‍സ്,serving,normal,,100,Lunch+Night,snacks,370.5,11.43,22.77,29.96
+Oats 30,ഓഡസ്‌ 30,cup,normal,Oats,000,Morning,mix,73.7,5.1,2.2,0
+Oats 30 + Sugar,ഓഡസ്‌ 30 + പഞ്ചസാര,cup,normal,Oats,000,Morning,mix,113.7,5.1,2.2,0
+Oats 30 + Sugar + Milk,ഓഡസ്‌ 30 + പഞ്ചസാര + പാല്,cup,normal,Oats,000,Morning,mix,127.2,11.5,4.25,0
+Onion-with coconut,ഉള്ളി,serving,normal,,001,Lunch+Night,curry,118,1.6,7.5,11.02
+Orange,മധുര നാരങ്ങ,num,fluid,Citrus fruit,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,48,0.7,0.2,10.9
+Orange,മധുര നാരങ്ങ,g,fluid,Citrus fruit,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,48,0.693,0.2,10.85
+Orange Juice,മധുരനാരങ്ങ ജൂസ്,ml,fluid,Citrus fruit,000,Mid of Mng-Lunch+Mid of Lunch-Night,juice,68,0.7,0.2,10.9
+Orange Neeru,നാരങ്ങാനീര്,num,normal,Citrus fruit,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,39,0.2,0.1,1.9
+Papaya,പപ്പായ,g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,32,0.6,0.1,0
+Papaya(green) with coconut,പപ്പായ,serving,normal,,001,Lunch+Night,curry,106,1.32,7.5,8.3
+Papaya(green) without coconut,പപ്പായ,serving,normal,,000,Lunch+Night,curry,83.76,1.1,5.45,7.57
+Pea Curry,പരിപ്പ് കറി,cup,normal,,000,Lunch+Night,curry,30,1,2,0
+Perk,Perk,g,normal,,000,All,chocolate,522,7.1,26.5,63.77
+Pine Apple,കൈതച്ചക്ക,g,fluid,,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,52,0.4,0.5,11.1
+Pine Apple Juice,കൈതച്ചക്ക ജൂസ്,ml,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,juice,49.6,0.32,0.08,8.64
+Pizza,പിസ്സ,serving,normal,,000,Mid of Lunch-Night,snacks,265.4,7.9,6.5,43.82
+Plantain Flower with coconut,വാഴ കൂമ്പ്,serving,normal,,001,Lunch+Night,curry,131,3.39,7.8,11.81
+Plantain Flower without coconut,വാഴ കൂമ്പ്,serving,normal,,000,Lunch+Night,curry,87.26,1.59,5.7,7.4
+Plantain green with coconut,പച്ചക്കായ,serving,normal,,001,Lunch+Night,curry,125,1.7,7.6,12.45
+Plantain green without coconut,പച്ചക്കായ,serving,normal,,000,Lunch+Night,curry,102.26,1.44,5.5,11.75
+Pomegranate,മാതളനാരകം ജൂസ്,ml,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,65,1.6,0.1,14.5
+Pomegranate,മാതളനാരങ്ങ,g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,64.93,1.6,0.1,14.49
+Poori,"പൂരിമൈദ 30,എണ്ണ 10",num,normal,,000,Morning,tiffin,195.6,2.61,10.12,22.17
+Porotta,പൊറോട്ട,num,normal,,000,Lunch+Night,tiffin,141.6,2.61,10.12,22.17
+POTATO BONDA,ഉരുളകിഴങ്ങ് ബോണ്ട,num,normal,,000,All,snacks,99,2.95,5.4,9.65
+Potato Curry,ഉരുളക്കിഴങ്ങ് കറി,cup,normal,,000,Lunch+Night,curry,89.92,0.98,5.15,9.96
+Potato with coconut,ഉരുളക്കിഴങ്ങ്,serving,normal,,001,Lunch+Night,curry,141.2,1.76,7.48,16.66
+Potato without coconut,ഉരുളക്കിഴങ്ങ്,serving,normal,,000,Lunch+Night,curry,118.78,1.54,5.4,32.01
+Pumpkin with coconut,മത്തങ്ങ,serving,normal,,001,Lunch+Night,curry,104.5,1.7,7.5,7.55
+Pumpkin without coconut,മത്തങ്ങ,serving,normal,,000,Lunch+Night,curry,82,1.44,5.4,6.91
+Puttu,പുട്ട്‌,num,normal,,001,Morning,tiffin,82.32,1.49,1.34,15.64
+Ragi Porridge,മുത്താറി കുറുക്ക്,cup,semisolid+soft,,000,Morning+Night,mix,189,7,6.3,21.6
+Raitha Carrot,റായ്ത്ത കാരറ്റ്‌,cup,fluid+soft,,000,Lunch,raitha,79,2.6,2.15,12.35
+Raitha(plain),റൈത്ത,g,fluid+soft,,000,Lunch,raitha,46.26,2.49,2.05,4.46
+Rava Porridge,റവ കുറുക്ക്,cup,semisolid+soft,,000,Morning+Night,mix,238.4,9.52,8.44,22.44
+Red Gram dhal,ചുവന്ന പരിപ്പ്‌,cup,normal,,000,Lunch+Night,curry,109,6,2,16.75
+Rice,ചോറ്,cup,normal,,000,Lunch+Night,rice,346,6.4,0.4,79
+Salad (Chicken),സാലഡ് ( ചിക്കൻ ),g,normal,,100,Lunch+Night,salad,75.79,11.94,0.106,2.266
+Salad (Cucumber & tomato),സാലഡ് ( വെള്ളരി & തക്കാളി ),g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,salad,17.06,0.62,0.186,3.226
+Sambar mixed vegetable,സാമ്പാര്‍,cup,normal,,000,Lunch+Night,curry,81,4,2.1,11.52
+Samosa,സമൂസ,num,normal,,000,Mid of Lunch-Night,snacks,207,2.5,12.6,20.9
+Sandwich,സാന്‍ഡ്‌വിച്ച്‌,num,normal,,000,Morning,snacks,97,1.6,7.05,6.79
+snake gourd with coconut,പടവലം,serving,normal,,001,Lunch+Night,curry,102,1.22,7.6,7.18
+snake gourd without coconut,പടവലം,serving,normal,,000,Lunch+Night,curry,79,1,5.5,6.37
+Supota,സപ്പോട്ട,g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,98,0.7,1.1,21.4
+Sweet Potato with coconut,മധുരക്കിഴങ്ങ്‌,serving,normal,,001,Lunch+Night,curry,182.5,1.92,7.7,26.38
+Sweet Potato without coconut,മധുരക്കിഴങ്ങ്‌,serving,normal,,000,Lunch+Night,curry,160,1.7,5.6,25.7
+Tapioca with coconut,കപ്പ,serving,normal,,001,Lunch+Night,curry,211,1.48,7.6,34.17
+Tapioca without coconut,കപ്പ,serving,normal,,000,Lunch+Night,curry,188,1.26,5.5,33.36
+Tea,"ചായപാല് 50,പഞ്ചസാര 5",cup,fluid,,000,Mid of Mng-Lunch+Mid of Lunch-Night,tea,53.5,1.6,2.05,0
+Tomato chilli sauce,തക്കാളി മുളക് സോസ്,ml,fluid,,000,All,sauce,14,0.9,0,2.6
+Tomato chutney,തക്കാളി ചട്‌ണി,cup,fluid,,000,Morning+Night,chutney,32,0.9,0.9,5.075
+Tomato Curry,തക്കാളി കറി,cup,normal,,000,Lunch+Night,curry,10.22,0.475,2.12,2.3
+Uppumavu,ഉപ്പുമാവ്,serving,soft,,000,Morning,tiffin,131.4,3.12,3.24,22.44
+Vada,വട,num,normal,,000,Morning,tiffin,69,3.05,2.95,7.56
+Vegetable Biryani,പച്ചകറി ബിരിയാണി,serving,normal,,000,Lunch+Night,sp_rice,175.2,2.32,2.17,25.72
+Vegetable cutlet,പച്ചക്കറി കട്ട്ലറ്റ്,num,soft,,000,Lunch+Night,snacks,136.7,3.51,2.75,42.25
+Vegetable Fried Rice,പച്ചക്കറി ഫ്രൈഡ് റൈസ്,serving,normal,,000,Lunch+Night,sp_rice,289.46,3.68,15.43,33.96
+Vegetable puff,പച്ചക്കറി പഫ്,num,normal,,000,Lunch,snacks,166,3,9.6,16.9
+Water Melon,തണ്ണിമത്തന്‍,g,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,fruit,48,0.6,0.6,9.88
+Water Melon,തണ്ണിമത്തന്‍ ജൂസ്,ml,normal,,000,Mid of Mng-Lunch+Mid of Lunch-Night,juice,37.3,0.2,0.2,3.3
+wheat Bread,ഗോതമ്പ് റൊട്ടി60,num,normal,Wheat,000,Morning+Mid of Mng-Lunch+Mid of Lunch-Night+Night,bread,73.2,2.64,0.588,14.7
+Yam with coconut,ചേന,serving,normal,,001,Lunch+Night,curry,132.5,1.56,7.48,14.73
+Yam without coconut,ചേന,serving,normal,,000,Lunch+Night,curry,110,1.34,5.4,19.51

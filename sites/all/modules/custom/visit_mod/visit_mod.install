@@ -1,0 +1,74 @@
+<?php
+
+function visit_mod_schema()	{
+	$schema = array();
+		
+	$schema['visit_details'] = array(
+		'fields' => array(
+			'visit_id' => array(
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'p_id' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'visited' => array(
+				'type' => 'int',
+				'length' => 11,
+				'not null' => TRUE,
+			),
+			
+			'weight' => array(
+				'type' => 'int',
+				'not null' => TRUE,
+			),
+		),
+		
+		'primary key' => array('visit_id'),
+		
+		'foreign keys' => array(
+			'patient_ref' => array(
+				'table' => 'patient_details',
+				'columns' => array('p_id' => 'p_id',),
+			),
+			
+		),
+	);
+	
+	$schema['combination_of_foods'] = array(
+		'fields' => array(
+			'combination_id' => array(
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'visit_id' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			
+			'rows' => array(
+				'type' => 'blob',
+				'size' => 'big',
+			),
+		),
+		
+		'primary key' => array('combination_id'),
+		
+		'foreign keys' => array(
+			'visit_ref' => array(
+				'table' => 'visit_details',
+				'columns' => array('visit_id' => 'visit_id',),
+			),
+		),
+	);
+	
+	return $schema;
+}

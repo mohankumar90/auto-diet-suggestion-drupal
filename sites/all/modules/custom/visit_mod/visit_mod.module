@@ -1,0 +1,32 @@
+<?php
+
+function visit_mod_menu() {
+	
+	$items = array();
+	  
+	$items['visits_view'] = array(
+		'title' => 'Visits of patient',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('formtable_form_table_form'),
+		'access callback' => 'user_is_logged_in',
+		'type' => MENU_NORMAL_ITEM,
+	);
+	
+	return $items;
+}
+
+function formtable_form_table_form($form = array(), &$form_state) {
+
+    $form['abc'] = array(
+        '#type' => 'textfield',
+        '#title' => t('ABC'),
+        '#default_value' => 'mohan',
+    );
+  // Add a submit button for fun.
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  return $form;
+}

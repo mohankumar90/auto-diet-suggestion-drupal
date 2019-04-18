@@ -1,0 +1,115 @@
+<?php
+ 
+function anonymous_block_info() {
+  $blocks = array();
+
+  $blocks['search block'] = array(
+    'info' => t('search block'), 
+    'cache' => DRUPAL_CACHE_GLOBAL,
+  );
+
+  return $blocks;
+}
+
+function anonymous_block_view($delta = '') {
+
+	$block = array();
+
+  switch ($delta) {
+    case 'search block':
+      //$block['subject'] = t('search block');
+      $block['content'] =  drupal_get_form('anonymous_form');
+    break;
+  }
+ 
+  return $block;
+}
+
+
+ function anonymous_form($form, &$form_state) {
+	 $form = array();
+	
+		if (!empty($form_state['values']['text'])) {
+			$header = array('p_id'=>t('patient id'),'p_name' => t('patient name'), 'age' => t('age'), 'gender' => t('gender'),'blood_group'=>t('blood group'),'disease_id'=>t('disease'));
+			$text = $form_state['values']['text'];
+
+		$query = db_select('patient_details', 'n');
+			$query->fields('n', array('p_name'));
+			$query->fields('n', array('age'));	
+			$query->fields('n', array('p_id'));
+			$query->fields('n', array('gender'));
+			$query->fields('n', array('blood_group'));
+			$query->fields('n', array('disease_ids'));
+			$query->condition('n.p_id', $text, '=');
+			$column_name = $query->execute()->fetchAssoc();
+
+			//$visit_details = db_query('SELECT c.combination_id, v.visited FROM {combination_of_foods} c INNER JOIN {visit_details} v ON c.visit_id = v.visit_id WHERE v.p_id = '. $text .' ORDER BY v.visited DESC')->fetchAll();
+		
+		if(isset($column_name["p_id"])) {
+				$row = array();
+
+				if ($column_name["gender"] == 0) {
+					$gender = 'Male';
+				}
+				else {
+					$gender = 'Female';
+				}
+				
+				$disease = "";
+				$output = array();
+				$temp = $column_name["disease_ids"];
+				$diseaseid = explode(',', $temp);
+				
+				foreach($diseaseid as $i)
+					$output[] = db_query('SELECT title FROM {node} WHERE nid = :type', array(':type' => $i))->fetchField();
+				
+				
+				foreach($output as $i)
+					$disease = $disease . "," . $i;
+					
+				$disease = trim($disease, ",");
+					$row[] = array( 
+							'p_id' => $column_name["p_id"],
+							'p_name' => $column_name["p_name"],
+							'age' => $column_name["age"],
+							'gender' => $gender,
+							'blood_group' => $column_name["blood_group"],
+							'disease_id' => $disease,
+					);
+
+				$form['table'] = array(
+						'#theme' => 'table',
+						'#header' => $header,
+						'#rows' => $row,
+						);
+
+				$rows = db_query('SELECT a.rows FROM {combination_of_foods} a WHERE a.combination_id = 
+												(SELECT MAX(c.combination_id) FROM {combination_of_foods} c WHERE c.visit_id = 
+													(SELECT MAX(v.visit_id) FROM {visit_details} v WHERE v.p_id = ' . $text .'))')->fetchField();
+
+				$form = array_merge($form, unserialize($rows));
+		}
+		else 
+			drupal_set_message("Not found");
+
+	}
+  else {
+		$form['text'] = array(
+				'#type' => 'textfield',
+				'#title' => t('patient_id')
+				);
+
+		$form['buttons']['submit'] = array(
+				'#type' => 'submit',
+				'#value' => t('Submit Button'),
+				); 
+  }
+
+  return $form;
+  
+}
+
+function anonymous_form_submit($form, &$form_state) {
+	  // global $column_name;
+	  $form_state['rebuild'] = true;
+} 

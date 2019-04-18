@@ -1,0 +1,7 @@
+name = "Patient"
+description = "Add Patient details through form"
+core = 7.x
+package = "Z_Custom"
+
+; Views handlers
+files[] = handlers/views_handler_disease_ids_field.inc

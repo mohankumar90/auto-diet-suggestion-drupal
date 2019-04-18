@@ -1,0 +1,4 @@
+name = "Visit module"
+description = "visits for Patient details through form"
+core = 7.x
+package = "Z_Custom"

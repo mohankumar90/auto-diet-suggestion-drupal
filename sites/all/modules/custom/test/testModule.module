@@ -1,0 +1,60 @@
+<?php
+
+/*	function testModule_node_presave($node) {
+		//echo '<pre>' . print_r($node, 1) . '</pre>'; die;
+	}*/
+	
+function testModule_menu() {
+	  
+	$items = array();
+	  
+	$items['test'] = array(
+		'title' => 'Test',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('test_form'),
+		'access callback' => 'user_is_logged_in',
+		'type' => MENU_NORMAL_ITEM,
+	);
+
+	return $items;
+}
+
+function test_form($form, &$form_state)	{
+
+	$form['name'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Name'), 
+		'#size' => 30, 
+		'#maxlength' => 128, 
+		'#required' => TRUE,
+	);
+	
+	$form['checkbox'] = array(
+		'#type' => 'checkbox',
+		'#title' => t('Exercise factor'),
+		'#default_value' => variable_get('checkbox', FALSE),
+	);
+
+	$form['selectbox'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Exercises'), 
+		'#states' => array(
+		  'invisible' => array(
+			':input[name="checkbox"]' => array('checked' => FALSE),
+		  ),
+		),
+	);
+	
+	$form['submit'] = array(
+		'#type' => 'submit',
+		'#value' => t('submit'),
+	);
+	
+	return $form;	
+}
+
+function test_form_submit($form, &$form_state) {
+	
+	drupal_set_message($form_state['values']['check'], 'status');
+	
+}
